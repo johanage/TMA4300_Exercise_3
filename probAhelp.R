@@ -7,7 +7,7 @@
 ## The model is
 ##
 ##   x[t] = x[t-1]*beta[1] + ... + x[t-p]*beta[p] + e[t],  t=1,2,...,T
-##
+## test
 ARp.beta.est = function(x, p) {
     T = length(x)
 
