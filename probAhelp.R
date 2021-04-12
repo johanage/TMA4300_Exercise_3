@@ -54,7 +54,7 @@ ARp.filter = function(x0, beta, e) {
     if (is.null(x0)) {
         x0 = rep(0,length(beta))
     }
-    # Caution: the function does not add the intial sequence to the 
+    # Caution: the function does not add the initial sequence to the 
     # time series. Further it requires the reverse intial sequence
     # as argument.
     x = filter(e, beta, method="recursive", init=rx0)
