@@ -1,3 +1,4 @@
+
 ## ARp.beta.est
 ##
 ## Estimate the parameters of an observed AR(p)-process, using least
@@ -57,7 +58,7 @@ ARp.filter = function(x0, beta, e) {
     # Caution: the function does not add the initial sequence to the 
     # time series. Further it requires the reverse intial sequence
     # as argument.
-    x = filter(e, beta, method="recursive", init=rx0)
+    x = stats::filter(e, beta, method="recursive", init=rx0)
 
     return(c(x0, x))
 }
@@ -73,7 +74,7 @@ ARp.filter = function(x0, beta, e) {
 ## The output contains the values  e_{p+1} through e_T, ans so has length==T-p
 ##
 ARp.resid = function(x, beta) {
-    e.hat = filter(x,c(1,-beta),sides=1)[-(1:length(beta))]
+    e.hat = stats::filter(x,c(1,-beta),sides=1)[-(1:length(beta))]
     # re-center the residuals around zero
     return(e.hat - mean(e.hat))
 }
