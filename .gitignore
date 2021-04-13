@@ -43,3 +43,6 @@ vignettes/*.pdf
 *.aux
 *.out
 *.pdf
+
+# Copy files
+CopyOf*
