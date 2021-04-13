@@ -28,12 +28,12 @@ knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.wh
 library(ggplot2)
 # library(expm)
 # library(Matrix)
-library(dplyr)
-library(tidyverse)
-library(boot)
 library(stats)
+library(boot)
 library(latex2exp)
 library(coda)
+library(dplyr)
+library(tidyverse)
 ```
 
 # Problem A
@@ -60,7 +60,7 @@ Q_{LA} (\mathbf{x}) = \sum_{t=3}^{T} |x_t - \beta_1 x_{t-1} - \beta_2 x_{t-2}|
 
 Denote the minimisers by $\mathbf{\beta}_{LS}$ and $\mathbf{\beta}_{LA}$ (calculated by ARp.beta.est), and define the estimated residuals to be :
 \begin{equation}\label{estimated_residuals}
-\hat{e}_t = x_t −\hat{\beta}_1x_{t−1} −\hat{\beta}_2 x_{t−2}
+\hat{e}_t = x_t -\hat{\beta}_1x_{t-1} -\hat{\beta}_2 x_{t-2}
 \end{equation}
 
 for $t = 3, . . . , T$, and let $\bar{e}$ be the mean of these. The $\hat{e}_t$ can be re-centered
@@ -71,9 +71,8 @@ to have mean zero by defining $\hat{\epsilon}_t = \hat{e}_t -\bar{e}$. (Results 
 ### 1.1 Use the residual resampling bootstrap method to evaluate the relative performance of the two parameter estimators.
 
 ```{r}
-source("probAhelp.R")
+source("probAhelp.R", local = knitr::knit_global())
 minisers_ar2 = ARp.beta.est(x = data3A$x, p = 2)
-
 eps_residuals_LS = ARp.resid(x = data3A$x, beta = minisers_ar2$LS)
 eps_residuals_LA = ARp.resid(x = data3A$x, beta = minisers_ar2$LA)
 
@@ -133,7 +132,7 @@ residual_bootstrap_resampling = function(x, p, B){
   return(df_boot)
 }
 
-boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 1500)
+#boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 1500)
 #estimating variance and bias of the two estimators after bootstrap
 ```
 
@@ -141,6 +140,11 @@ boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 1500)
 The LS estimator is optimal for Gaussian AR(p) processes. 
 
 ### Explain if it is also optimal for this problem.
+
+
+
+
+
 
 # Problem C
 
@@ -268,8 +272,10 @@ u_i \left( \frac{1}{\lambda_1^{(t)}} - \frac{z_i}{e^{\lambda_1^{(t)} z_i} - 1} \
 
 ## 2)
 
-Let $Q(\lambda_0, \lambda_1) be defined
+Let $Q(\lambda_0, \lambda_1)$ be defined
 
 \begin{equation*}
-
+Q(\lambda_0, \lambda_1)  = 
+= Q(\lambda_0, \lambda_1 | \lambda_0^{(t)}, \lambda_1^{(t)})
+= \E \left[ l(\lambda_0, \lambda_1 | \vect x, \vect y)  \big | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}\right]
 \end{equation*}
