@@ -26,8 +26,6 @@ knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.wh
 
 ```{r rpackages,eval=TRUE,echo=FALSE}
 library(ggplot2)
-# library(expm)
-# library(Matrix)
 library(dplyr)
 library(tidyverse)
 library(boot)
@@ -42,7 +40,6 @@ library(coda)
 
 ```{r, fig.height=3, fig.width=4}
 source("probAdata.R")
-df_data3A = data.frame(x = data3A$x)
 plot(data3A$x)
 ```
 We consider an AR(2) model which is specified by the relation:
