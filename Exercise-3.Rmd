@@ -26,12 +26,20 @@ knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.wh
 
 ```{r rpackages,eval=TRUE,echo=FALSE}
 library(ggplot2)
+<<<<<<< HEAD
 library(dplyr)
 library(tidyverse)
 library(boot)
+=======
+# library(expm)
+# library(Matrix)
+>>>>>>> 295773213810ffc4c34e5ac0006184c14d980fd1
 library(stats)
+library(boot)
 library(latex2exp)
 library(coda)
+library(dplyr)
+library(tidyverse)
 ```
 
 # Problem A
@@ -57,7 +65,7 @@ Q_{LA} (\mathbf{x}) = \sum_{t=3}^{T} |x_t - \beta_1 x_{t-1} - \beta_2 x_{t-2}|
 
 Denote the minimisers by $\mathbf{\beta}_{LS}$ and $\mathbf{\beta}_{LA}$ (calculated by ARp.beta.est), and define the estimated residuals to be :
 \begin{equation}\label{estimated_residuals}
-\hat{e}_t = x_t −\hat{\beta}_1x_{t−1} −\hat{\beta}_2 x_{t−2}
+\hat{e}_t = x_t -\hat{\beta}_1x_{t-1} -\hat{\beta}_2 x_{t-2}
 \end{equation}
 
 for $t = 3, . . . , T$, and let $\bar{e}$ be the mean of these. The $\hat{e}_t$ can be re-centered
@@ -68,9 +76,8 @@ to have mean zero by defining $\hat{\epsilon}_t = \hat{e}_t -\bar{e}$. (Results 
 ### 1.1 Use the residual resampling bootstrap method to evaluate the relative performance of the two parameter estimators.
 
 ```{r}
-source("probAhelp.R")
+source("probAhelp.R", local = knitr::knit_global())
 minisers_ar2 = ARp.beta.est(x = data3A$x, p = 2)
-
 eps_residuals_LS = ARp.resid(x = data3A$x, beta = minisers_ar2$LS)
 eps_residuals_LA = ARp.resid(x = data3A$x, beta = minisers_ar2$LA)
 
@@ -81,7 +88,6 @@ sample_consecutive = function(x){
   set.seed(2021)
   x_reshaped = matrix(unlist(t(x)), byrow=T, 50, 2)
   idx = sample(seq(1,50), size = 1, replace = FALSE)
-  print(idx)
   x_sample_pair = x_reshaped[idx,]
   return(x_sample_pair)
 }
@@ -93,14 +99,14 @@ To do a resampling, initialise values for $x_1$ and $x_2$ by picking a random co
 ```{r, fig.height=3, fig.width=4}
 calc_x_LS = ARp.filter(x0 = x1x2_sample1, 
                        beta = minisers_ar2$LS, 
-                       e = sample(eps_residuals_LS, size=100, replace=TRUE))
+                       e = sample(eps_residuals_LS, size=length(eps_residuals_LS), replace=TRUE))
 plot(calc_x_LS)
 ```
 
 ```{r, fig.height=3, fig.width=4}
 calc_x_LA = ARp.filter(x0 = x1x2_sample1, 
                        beta = minisers_ar2$LA, 
-                       e = sample(eps_residuals_LA, size=100, replace=TRUE))
+                       e = sample(eps_residuals_LA, size=length(eps_residuals_LA), replace=TRUE))
 plot(calc_x_LA)
 ```
 
@@ -109,28 +115,44 @@ plot(calc_x_LA)
 ```{r}
 # bootstrap resampling
 residual_bootstrap_resampling = function(x, p, B){
-  samples_LS = matrix(data = NA, nrow = 1500, ncol = 100)
-  samples_LA = matrix(data = NA, nrow = 1500, ncol = 100)
-  for(i in range(B)){
+  samples_LS = c()
+  samples_LA = c()
+  means_LS = c()
+  means_LA = c()
+  for(i in 1:B){
     x_pair = sample_consecutive(x = x)
     beta_vecs = ARp.beta.est(x = x, p = p)
     eps_LS = ARp.resid(x = x, beta = beta_vecs$LS)
     eps_LA = ARp.resid(x = x, beta = beta_vecs$LA)
     x_LS = ARp.filter(x0 = x_pair, 
                          beta = beta_vecs$LS, 
-                         e = sample(eps_LS, size=100, replace=TRUE))
-    samples_LS[i,] = x_LS
+                         e = sample(eps_LS, size=length(eps_LS), replace=TRUE))
+    means_LS = c(means_LS,mean(x_LS))
+    samples_LS = c(samples_LS, x_LS)
     x_LA = ARp.filter(x0 = x_pair, 
                          beta = beta_vecs$LA, 
-                         e = sample(eps_LA, size=100, replace=TRUE))
-    samples_LA[i,] = x_LA
-    
+                         e = sample(eps_LA, size=length(eps_LA), replace=TRUE))
+    means_LA = c(means_LA,mean(x_LA))
+    samples_LA = c(samples_LA, x_LA)
   }
-  df_boot = data.frame(LS = samples_LS, LA = samples_LA)
+  df_boot = data.frame(LS = samples_LS, LA = samples_LA, est_LS = mean(means_LS)/B,
+                       est_LA = mean(means_LA)/B)
   return(df_boot)
 }
 
-boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 1500)
+boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 2000)
+hist(boot1$LS)
+hist(boot1$LA)
+var_boot1_LS = var(boot1$LS)
+print(var_boot1_LS)
+var_boot1_LA = var(boot1$LA)
+print(var_boot1_LA)
+
+#computing bias:
+bias_LS = boot1$est_LS - data3A$x
+bias_LA = boot1$est_LA - data3A$x
+print(bias_LS)
+print(bias_LA)
 #estimating variance and bias of the two estimators after bootstrap
 ```
 
@@ -138,6 +160,11 @@ boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 1500)
 The LS estimator is optimal for Gaussian AR(p) processes. 
 
 ### Explain if it is also optimal for this problem.
+
+
+
+
+
 
 # Problem C
 
@@ -178,16 +205,97 @@ The likelihood function for the complete data $(\vect x, \vect y)$ is
 
 Correspondingly, the log likelihood function for the complete data $(\vect x, \vect y)$ is
 
-\begin{align*}
-l(\lambda_0, \lambda_1 | \vect x, \vect y) &= \log \left( L(\lambda_0, \lambda_1 | \vect x, \vect y)  \right) \\
-&= n \left( \log(\lambda_0) + \log(\lambda_1) \right) -\lambda_0 \sum_{i=1}^n x_i -\lambda_1 \sum_{i=1}^n y_i
-\end{align*}
+\begin{equation*}
+\begin{split}
+l(\lambda_0, \lambda_1 | \vect x, \vect y) &= \ln \left( L(\lambda_0, \lambda_1 | \vect x, \vect y)  \right) \\
+&= n \left( \ln(\lambda_0) + \ln(\lambda_1) \right) -\lambda_0 \sum_{i=1}^n x_i -\lambda_1 \sum_{i=1}^n y_i
+\end{split}
+\end{equation*}
 
-Using this we want to find the expectation of the log likelihood function for the complete data condtional on the observed data $(\vect z, \vect u)$ and the estimates for the parameters at iteration $t$, i.e $\lambda_o^{(t)}, \lambda_1^{(t)}$.
+Using this we want to find the expectation of the log likelihood function for the complete data condtional on the observed data $(\vect z, \vect u)$ and the estimates for the parameters at iteration $t$, i.e $(\lambda_o^{(t)}, \lambda_1^{(t)})$.
 
-\begin{align*}
+\begin{equation} \label{eq:em_formula_incomplete}
+\begin{split}
 \E \left[ l(\lambda_0, \lambda_1 | \vect x, \vect y)  | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}\right]
-&= \E \left[ \log\left( f(\vect x, \vect y | \lambda_0, \lambda_1) \right) 
+&= \E \left[ \ln\left( f(\vect x, \vect y | \lambda_0, \lambda_1) \right) 
 | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}  \right] \\
-&= n \left( \log(\lambda_0) + \log(\lambda_1) \right) -\lambda_0 \sum_{i=1}^n \E [x_i | z_i, u_i, \lambda_0^{(t)}]  - \lambda_1 \sum_{i=1}^n \E [y_i | z_i, u_i, \lambda_1^{(t)}
+&= n \left( \ln(\lambda_0) + \ln(\lambda_1) \right) -\lambda_0 \sum_{i=1}^n \E [x_i | z_i, u_i, \lambda_0^{(t)}]  - \lambda_1 \sum_{i=1}^n \E [y_i | z_i, u_i, \lambda_1^{(t)}
+\end{split}
+\end{equation}
+
+For the case $u_i = 1$ then we have
+
+\begin{align*}
+\E [x_i | z_i, u_i = 1, \lambda_0^{(t)}] &= u_i
 \end{align*}
+
+and
+
+\begin{align*}
+\E [y_i | z_i, u_i = 1, \lambda_1^{(t)}
+&= \int_0^{z_i} y_i P \left( y_i | y_i \leq z_i, \lambda_1^{(t)}\right) dy_i \\
+&=\int_0^{z_i} y_i \frac{P \left( y_i \cap y_i \leq z_i | \lambda_1^{(t)} \right) }
+{P \left( y_i \leq z_i | \lambda_1^{(t)} \right) } dy_i \\
+&= \int_0^{z_i} y_i \frac{f(y_i | \lambda_1^{(t)})}{ \int_0^{z_i} f(y_i^* | \lambda_1^{(t)}) dy_i^*} dy_i) \\
+&= \frac{1}{ \int_0^{z_i} \lambda_1^{(t)} e^{-\lambda_1^{(t)} y_i^* } dy_i^*}
+\int_0^{z_i} y_i \lambda_1^{(t)} e^{-\lambda_1^{(t)} y_i} dy_i) \\
+&= \frac{1}{1 - e^{- \lambda_1^{(t)} z_i}} 
+\left( 
+-z_i e^{- \lambda_1^{(t)} z_i} - \frac{1}{\lambda_1^{(t)}} e^{- \lambda_1^{(t)} z_i} + \frac{1}{\lambda_1^{(t)}}
+\right) \\
+&= \frac{-z_i e^{- \lambda_1^{(t)} z_i}}{1 - e^{- \lambda_1^{(t)} z_i}} + \frac{1}{\lambda_1^{(t)}} \\
+&= \frac{1}{\lambda_1^{(t)}} - \frac{z_i}{e^{\lambda_1^{(t)} z_i} - 1}
+\end{align*}
+
+Correspondlingly, we have for the $u_i = 0$ that
+
+\begin{align*}
+\E [x_i | z_i, u_i = 0, \lambda_0^{(t)}
+&= \int_0^{z_i} x_i P \left( x_i | x_i \leq z_i, \lambda_0^{(t)}\right) dx_i \\
+&=\int_0^{z_i} x_i \frac{P \left( x_i \cap x_i \leq z_i | \lambda_0^{(t)} \right) }
+{P \left( x_i \leq z_i | \lambda_0^{(t)} \right) } dx_i \\
+&= \int_0^{z_i} x_i \frac{f(x_i | \lambda_0^{(t)})}{ \int_0^{z_i} f(x_i^* | \lambda_0^{(t)}) dx_i^*} dx_i) \\
+&= \frac{1}{ \int_0^{z_i} \lambda_0^{(t)} e^{-\lambda_0^{(t)} x_i^* } dx_i^*}
+\int_0^{z_i} x_i \lambda_0^{(t)} e^{-\lambda_0^{(t)} x_i} dx_i) \\
+&= \frac{1}{1 - e^{- \lambda_0^{(t)} z_i}} 
+\left( 
+-z_i e^{- \lambda_0^{(t)} z_i} - \frac{1}{\lambda_0^{(t)}} e^{- \lambda_0^{(t)} z_i} + \frac{1}{\lambda_0^{(t)}}
+\right) \\
+&= \frac{-z_i e^{- \lambda_0^{(t)} z_i}}{1 - e^{- \lambda_0^{(t)} z_i}} + \frac{1}{\lambda_0^{(t)}} \\
+&= \frac{1}{\lambda_0^{(t)}} - \frac{z_i}{e^{\lambda_0^{(t)} z_i} - 1}
+\end{align*}
+
+and
+
+\begin{align*}
+\E [y_i | z_i, u_i = 0, \lambda_1^{(t)}] &= u_i \\
+\end{align*}
+
+Inserting this result into Equation (\ref{eq:em_formula_incomplete}) we get
+
+\begin{equation} \label{eq:em_formula}
+\begin{split}
+\E \left[ l(\lambda_0, \lambda_1 | \vect x, \vect y)  \big | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}\right]
+=& \E \left[ \ln\left( f(\vect x, \vect y | \lambda_0, \lambda_1) \right) 
+\big | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}  \right] \\
+=& n \left( \ln(\lambda_0) + \ln(\lambda_1) \right) \\
+&- \lambda_0 \sum_{i=1}^n 
+\left [ u_i z_i 
++ (1 - u_i) \left( \frac{1}{\lambda_0^{(t)}} - \frac{z_i}{e^{\lambda_0^{(t)} z_i} - 1} \right)
+\right] \\
+&- \lambda_1 \sum_{i=1}^n \left [
+(1 - u_i) z_i + 
+u_i \left( \frac{1}{\lambda_1^{(t)}} - \frac{z_i}{e^{\lambda_1^{(t)} z_i} - 1} \right)
+\right ]
+\end{split}
+\end{equation}
+
+## 2)
+
+Let $Q(\lambda_0, \lambda_1)$ be defined
+
+\begin{equation*}
+Q(\lambda_0, \lambda_1)  = 
+= Q(\lambda_0, \lambda_1 | \lambda_0^{(t)}, \lambda_1^{(t)})
+= \E \left[ l(\lambda_0, \lambda_1 | \vect x, \vect y)  \big | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}\right]
+\end{equation*}
