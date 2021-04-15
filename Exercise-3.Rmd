@@ -153,8 +153,8 @@ residual_bootstrap_resampling = function(x, p, B){
     sd_LA = c(sd_LA, sqrt(var(x_LA)))
     samples_LA = c(samples_LA, x_LA)
   }
-  hat_SE_B_LS = sqrt(sum((sd_LS - mean(sd_LS)/B)^2)/(B -1))
-  hat_SE_B_LA = sqrt(sum((sd_LA - mean(sd_LA)/B)^2)/(B -1))
+  hat_SE_B_LS = sqrt(sum((sd_LS - mean(sd_LS))^2)/(B -1))
+  hat_SE_B_LA = sqrt(sum((sd_LA - mean(sd_LA))^2)/(B -1))
   df_boot = data.frame(LS = samples_LS, LA = samples_LA, 
                        est_sd_LS = hat_SE_B_LS,
                        est_sd_LA = hat_SE_B_LA)
@@ -172,6 +172,7 @@ boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 2000)
 # print(var_boot1_LA)
 
 #computing bias:
+print(paste0("Mean of the data", mean(data3A$x)))
 bias_LS = boot1$est_sd_LS[1] - mean(data3A$x)
 bias_LA = boot1$est_sd_LA[1] - mean(data3A$x)
 print(bias_LS)
@@ -186,6 +187,25 @@ The LS estimator is optimal for Gaussian AR(p) processes.
 
 
 
+# Problem B Permutation Test
+
+```{r}
+bilirubin <- read.table("bilirubin.txt",header=T)
+head(bilirubin)
+
+
+"Use a boxplot to inspect the logarithms of the concentrations for each individual. Be careful to use the same y-axis to make the plots comparable. Use the function lm in R to fit the regression model log Yij = βi + epsilon_ij , with i = 1, 2, 3 and j = 1, . . . , ni (1)
+where n1 = 11, n2 = 10 and n3 = 8, and epsilon_ij iid∼ N (0, σ2). Use the F-test to test the hypothesis that β1 = β2 = β3 and save the value of the F-statistic as Fval. Is the hypothesis accepted?"
+model_bilirubin <- lm(log(meas)~pers,data=bilirubin)
+F_statistic = summary.lm(model_bilirubin)
+
+"Write a function permTest() which generates a permutation of the data between the three individuals, consequently fits the model given in (1) and finally returns the value of the F-statistic for testing β1 = β2 = β3."
+permTest = function() {return(0)}
+
+
+"Perform a permutation test using the function permTest to generate a sample of size 999 for the F-statistic. Compute the p-value for Fval using this sample. What do you observe?
+"
+```
 
 
 
