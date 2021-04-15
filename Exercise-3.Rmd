@@ -26,14 +26,9 @@ knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.wh
 
 ```{r rpackages,eval=TRUE,echo=FALSE}
 library(ggplot2)
-<<<<<<< HEAD
 library(dplyr)
 library(tidyverse)
 library(boot)
-=======
-# library(expm)
-# library(Matrix)
->>>>>>> 295773213810ffc4c34e5ac0006184c14d980fd1
 library(stats)
 library(boot)
 library(latex2exp)
@@ -113,13 +108,33 @@ plot(calc_x_LA)
 ### 1.2 Specifically, estimate the variance and bias of the two estimators.
 
 ```{r}
+
+"
+Agenda:
+- implement theta_hat*(b) which is the empirical variance of the bootstrapsample for every t
+  - and for b = 1,2,...,B
+- Estimate the empirical SD(theta_hat*) by the formula for SE_B^
+- compute theta_hat*(dot)
+
+"
+
 # bootstrap resampling
 residual_bootstrap_resampling = function(x, p, B){
   samples_LS = c()
   samples_LA = c()
-  means_LS = c()
-  means_LA = c()
+  sd_LS = c()
+  sd_LA = c()
   for(i in 1:B){
+    " Done equally for both methods LS, LA
+    Algo:
+    1. Sample pair x1 and x2 from the given data
+    2. Use help function ARp.beta.est to calculate the betas
+    3. Use help function ARp.resid to calc residuals
+    4. Use help function ARp.filter to resample w/ replacement
+    5. Add sd for current sample to list of sds
+    6. Calc the estimator for the SD
+    "
+    
     x_pair = sample_consecutive(x = x)
     beta_vecs = ARp.beta.est(x = x, p = p)
     eps_LS = ARp.resid(x = x, beta = beta_vecs$LS)
@@ -127,30 +142,38 @@ residual_bootstrap_resampling = function(x, p, B){
     x_LS = ARp.filter(x0 = x_pair, 
                          beta = beta_vecs$LS, 
                          e = sample(eps_LS, size=length(eps_LS), replace=TRUE))
-    means_LS = c(means_LS,mean(x_LS))
+    sd_LS = c(sd_LS, sqrt(var(x_LS)))
+    # print(sqrt(var(x_LS)))
     samples_LS = c(samples_LS, x_LS)
+    
+    
     x_LA = ARp.filter(x0 = x_pair, 
                          beta = beta_vecs$LA, 
                          e = sample(eps_LA, size=length(eps_LA), replace=TRUE))
-    means_LA = c(means_LA,mean(x_LA))
+    sd_LA = c(sd_LA, sqrt(var(x_LA)))
     samples_LA = c(samples_LA, x_LA)
   }
-  df_boot = data.frame(LS = samples_LS, LA = samples_LA, est_LS = mean(means_LS)/B,
-                       est_LA = mean(means_LA)/B)
+  hat_SE_B_LS = sqrt(sum((sd_LS - mean(sd_LS)/B)^2)/(B -1))
+  hat_SE_B_LA = sqrt(sum((sd_LA - mean(sd_LA)/B)^2)/(B -1))
+  df_boot = data.frame(LS = samples_LS, LA = samples_LA, 
+                       est_sd_LS = hat_SE_B_LS,
+                       est_sd_LA = hat_SE_B_LA)
   return(df_boot)
 }
 
+#estimating  the variance and bias of the two estimators
 boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 2000)
-hist(boot1$LS)
-hist(boot1$LA)
-var_boot1_LS = var(boot1$LS)
-print(var_boot1_LS)
-var_boot1_LA = var(boot1$LA)
-print(var_boot1_LA)
+# hist(data3A$x)
+# hist(boot1$LS)
+# hist(boot1$LA)
+# var_boot1_LS = var(boot1$LS)
+# print(var_boot1_LS)
+# var_boot1_LA = var(boot1$LA)
+# print(var_boot1_LA)
 
 #computing bias:
-bias_LS = boot1$est_LS - data3A$x
-bias_LA = boot1$est_LA - data3A$x
+bias_LS = boot1$est_sd_LS[1] - mean(data3A$x)
+bias_LA = boot1$est_sd_LA[1] - mean(data3A$x)
 print(bias_LS)
 print(bias_LA)
 #estimating variance and bias of the two estimators after bootstrap
