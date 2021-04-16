@@ -32,8 +32,9 @@ knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.wh
 
 ```{r rpackages,eval=TRUE,echo=FALSE}
 library(ggplot2)
-# library(expm)
-# library(Matrix)
+library(dplyr)
+library(tidyverse)
+library(boot)
 library(stats)
 library(boot)
 library(latex2exp)
@@ -48,7 +49,6 @@ library(tidyverse)
 
 ```{r, fig.height=3, fig.width=4}
 source("probAdata.R")
-df_data3A = data.frame(x = data3A$x)
 plot(data3A$x)
 ```
 We consider an AR(2) model which is specified by the relation:
@@ -89,7 +89,6 @@ sample_consecutive = function(x){
   set.seed(2021)
   x_reshaped = matrix(unlist(t(x)), byrow=T, 50, 2)
   idx = sample(seq(1,50), size = 1, replace = FALSE)
-  print(idx)
   x_sample_pair = x_reshaped[idx,]
   return(x_sample_pair)
 }
@@ -101,44 +100,89 @@ To do a resampling, initialise values for $x_1$ and $x_2$ by picking a random co
 ```{r, fig.height=3, fig.width=4}
 calc_x_LS = ARp.filter(x0 = x1x2_sample1, 
                        beta = minisers_ar2$LS, 
-                       e = sample(eps_residuals_LS, size=100, replace=TRUE))
+                       e = sample(eps_residuals_LS, size=length(eps_residuals_LS), replace=TRUE))
 plot(calc_x_LS)
 ```
 
 ```{r, fig.height=3, fig.width=4}
 calc_x_LA = ARp.filter(x0 = x1x2_sample1, 
                        beta = minisers_ar2$LA, 
-                       e = sample(eps_residuals_LA, size=100, replace=TRUE))
+                       e = sample(eps_residuals_LA, size=length(eps_residuals_LA), replace=TRUE))
 plot(calc_x_LA)
 ```
 
 ### 1.2 Specifically, estimate the variance and bias of the two estimators.
 
 ```{r}
+
+"
+Agenda:
+- implement theta_hat*(b) which is the empirical variance of the bootstrapsample for every t
+  - and for b = 1,2,...,B
+- Estimate the empirical SD(theta_hat*) by the formula for SE_B^
+- compute theta_hat*(dot)
+
+"
+
 # bootstrap resampling
 residual_bootstrap_resampling = function(x, p, B){
-  samples_LS = matrix(data = NA, nrow = 1500, ncol = 100)
-  samples_LA = matrix(data = NA, nrow = 1500, ncol = 100)
-  for(i in range(B)){
+  samples_LS = c()
+  samples_LA = c()
+  sd_LS = c()
+  sd_LA = c()
+  for(i in 1:B){
+    " Done equally for both methods LS, LA
+    Algo:
+    1. Sample pair x1 and x2 from the given data
+    2. Use help function ARp.beta.est to calculate the betas
+    3. Use help function ARp.resid to calc residuals
+    4. Use help function ARp.filter to resample w/ replacement
+    5. Add sd for current sample to list of sds
+    6. Calc the estimator for the SD
+    "
+    
     x_pair = sample_consecutive(x = x)
     beta_vecs = ARp.beta.est(x = x, p = p)
     eps_LS = ARp.resid(x = x, beta = beta_vecs$LS)
     eps_LA = ARp.resid(x = x, beta = beta_vecs$LA)
     x_LS = ARp.filter(x0 = x_pair, 
                          beta = beta_vecs$LS, 
-                         e = sample(eps_LS, size=100, replace=TRUE))
-    samples_LS[i,] = x_LS
+                         e = sample(eps_LS, size=length(eps_LS), replace=TRUE))
+    sd_LS = c(sd_LS, sqrt(var(x_LS)))
+    # print(sqrt(var(x_LS)))
+    samples_LS = c(samples_LS, x_LS)
+    
+    
     x_LA = ARp.filter(x0 = x_pair, 
                          beta = beta_vecs$LA, 
-                         e = sample(eps_LA, size=100, replace=TRUE))
-    samples_LA[i,] = x_LA
-    
+                         e = sample(eps_LA, size=length(eps_LA), replace=TRUE))
+    sd_LA = c(sd_LA, sqrt(var(x_LA)))
+    samples_LA = c(samples_LA, x_LA)
   }
-  df_boot = data.frame(LS = samples_LS, LA = samples_LA)
+  hat_SE_B_LS = sqrt(sum((sd_LS - mean(sd_LS))^2)/(B -1))
+  hat_SE_B_LA = sqrt(sum((sd_LA - mean(sd_LA))^2)/(B -1))
+  df_boot = data.frame(LS = samples_LS, LA = samples_LA, 
+                       est_sd_LS = hat_SE_B_LS,
+                       est_sd_LA = hat_SE_B_LA)
   return(df_boot)
 }
 
-#boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 1500)
+#estimating  the variance and bias of the two estimators
+boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 2000)
+# hist(data3A$x)
+# hist(boot1$LS)
+# hist(boot1$LA)
+# var_boot1_LS = var(boot1$LS)
+# print(var_boot1_LS)
+# var_boot1_LA = var(boot1$LA)
+# print(var_boot1_LA)
+
+#computing bias:
+print(paste0("Mean of the data", mean(data3A$x)))
+bias_LS = boot1$est_sd_LS[1] - mean(data3A$x)
+bias_LA = boot1$est_sd_LA[1] - mean(data3A$x)
+print(bias_LS)
+print(bias_LA)
 #estimating variance and bias of the two estimators after bootstrap
 ```
 
@@ -149,6 +193,25 @@ The LS estimator is optimal for Gaussian AR(p) processes.
 
 
 
+# Problem B Permutation Test
+
+```{r}
+bilirubin <- read.table("bilirubin.txt",header=T)
+head(bilirubin)
+
+
+"Use a boxplot to inspect the logarithms of the concentrations for each individual. Be careful to use the same y-axis to make the plots comparable. Use the function lm in R to fit the regression model log Yij = βi + epsilon_ij , with i = 1, 2, 3 and j = 1, . . . , ni (1)
+where n1 = 11, n2 = 10 and n3 = 8, and epsilon_ij iid∼ N (0, σ2). Use the F-test to test the hypothesis that β1 = β2 = β3 and save the value of the F-statistic as Fval. Is the hypothesis accepted?"
+model_bilirubin <- lm(log(meas)~pers,data=bilirubin)
+F_statistic = summary.lm(model_bilirubin)
+
+"Write a function permTest() which generates a permutation of the data between the three individuals, consequently fits the model given in (1) and finally returns the value of the F-statistic for testing β1 = β2 = β3."
+permTest = function() {return(0)}
+
+
+"Perform a permutation test using the function permTest to generate a sample of size 999 for the F-statistic. Compute the p-value for Fval using this sample. What do you observe?
+"
+```
 
 
 

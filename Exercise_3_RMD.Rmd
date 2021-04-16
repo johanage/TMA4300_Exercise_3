@@ -1,0 +1,116 @@
+---
+title: "Exercise_3_RMD"
+author: "johanage"
+date: "12 april 2021"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+# Problem A
+## Comparing AR(2) parameter estimators using resampling of residuals
+
+```{r, fig.height=3, fig.width=4}
+source("probAdata.R")
+
+plot(data3A$x)
+```
+We consider an AR(2) model which is specified by the relation:
+
+\begin{equation}\label{AR2}
+x_t = \beta_1 x_{t-1} + \beta_2 x_{t-2} + e_t
+\end{equation}
+
+The least sum of squared residuals (LS) and least sum of absolute residuals (LA) are obtained by minimising the following loss functions with respect to $\mathbf{\beta}$:
+
+\begin{align}
+Q_{LS} (\mathbf{x}) = \sum_{t=3}^{T} ( x_t - \beta_1 x_{t-1} - \beta_2 x_{t-2} )^2
+Q_{LA} (\mathbf{x}) = \sum_{t=3}^{T} |x_t - \beta_1 x_{t-1} - \beta_2 x_{t-2}|
+\end{align}
+
+Denote the minimisers by $\mathbf{\beta}_{LS}$ and $\mathbf{\beta}_{LA}$ (calculated by ARp.beta.est), and define the estimated residuals to be :
+\begin{equation}\label{estimated_residuals}
+\hat{e}_t = x_t −\hat{\beta}_1x_{t−1} −\hat{\beta}_2 x_{t−2}
+\end{equation}
+
+for $t = 3, . . . , T$, and let $\bar{e}$ be the mean of these. The $\hat{e}_t$ can be re-centered
+to have mean zero by defining $\hat{\epsilon}_t = \hat{e}_t -\bar{e}$. (Results for $\hat{\epsilon}_t$ obtained by LS and LA can be calculated with ARp.resid).
+
+## A.1
+
+### 1.1 Use the residual resampling bootstrap method to evaluate the relative performance of the two parameter estimators.
+
+```{r}
+source("probAhelp.R")
+minisers_ar2 = ARp.beta.est(x = data3A$x, p = 2)
+print(minisers_ar2$LS)
+print(minisers_ar2$LA)
+
+eps_residuals_LS = ARp.resid(x = data3A$x, beta = minisers_ar2$LS)
+eps_residuals_LA = ARp.resid(x = data3A$x, beta = minisers_ar2$LA)
+
+#initialise values for x1 and x2 
+#by picking a random consecutive subsequence from the data
+sample_consecutive = function(x){
+  #set seed for reproducability
+  set.seed(2021)
+  x_reshaped = matrix(unlist(t(x)), byrow=T, 50, 2)
+  idx = sample(seq(1,50), size = 1, replace = FALSE)
+  print(idx)
+  x_sample_pair = x_reshaped[idx,]
+  return(x_sample_pair)
+}
+
+x1x2_sample1 = sample_consecutive(x = data3A$x)
+print(x1x2_sample1)
+```
+To do a resampling, initialise values for $x_1$ and $x_2$ by picking a random consecutive subsequence from the data.
+```{r, fig.height=3, fig.width=4}
+calc_x_LS = data.frame(x = ARp.filter(x0 = x1x2_sample1, 
+                       beta = minisers_ar2$LS, 
+                       e = sample(eps_residuals_LS, size=100, replace=TRUE)))
+plot(calc_x_LS$x)
+```
+
+```{r, fig.height=3, fig.width=4}
+calc_x_LA = data.frame(x = ARp.filter(x0 = x1x2_sample1, 
+                       beta = minisers_ar2$LA, 
+                       e = sample(eps_residuals_LA, size=100, replace=TRUE)))
+plot(calc_x_LA$x)
+```
+
+### 1.2 Specifically, estimate the variance and bias of the two estimators.
+
+```{r}
+# bootstrap resampling
+residual_bootstrap_resampling = function(x, p, B){
+  samples_LS = matrix(data = NA, nrow = B, ncol = length(x)+2)
+  samples_LA = matrix(data = NA, nrow = B, ncol = length(x)+2)
+  for(i in range(B)){
+    x_pair = sample_consecutive(x = x)
+    beta_vecs = ARp.beta.est(x = x, p = p)
+    eps_LS = ARp.resid(x = x, beta = beta_vecs$LS)
+    eps_LA = ARp.resid(x = x, beta = beta_vecs$LA)
+    x_LS = ARp.filter(x0 = x_pair, 
+                         beta = beta_vecs$LS, 
+                         e = sample(eps_LS, size=100, replace=TRUE))
+    samples_LS[i,] = x_LS
+    x_LA = ARp.filter(x0 = x_pair, 
+                         beta = beta_vecs$LA, 
+                         e = sample(eps_LA, size=100, replace=TRUE))
+    samples_LA[i,] = x_LA
+    
+  }
+  df_boot = data.frame(LS = samples_LS, LA = samples_LA)
+  return(df_boot)
+}
+
+boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 1500)
+#estimating variance and bias of the two estimators after bootstrap
+```
+
+
+The LS estimator is optimal for Gaussian AR(p) processes. 
+
+### Explain if it is also optimal for this problem.
