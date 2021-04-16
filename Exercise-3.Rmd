@@ -8,6 +8,7 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: pdf_document
 header-includes:
    - \usepackage{subfig}
+   - \usepackage[ruled,vlined]{algorithm2e}
 ---
 
 \newcommand{\vect}[1]{\ensuremath{\boldsymbol{\mathbf{#1} }}}
@@ -16,6 +17,11 @@ header-includes:
 \newcommand{\E}{\textrm{E}}
 \newcommand{\Cov}{\textrm{Cov}}
 \newcommand{\Corr}{\textrm{Corr}}
+\newcommand{\argmax}{\textrm{argmax}}
+\newcommand{\argmin}{\textrm{argmin}}
+\newcommand{\sd}{\textrm{SD}}
+\newcommand{\bias}{\textrm{Bias}}
+
 
 ```{r setup, include=FALSE}
 library(knitr)
@@ -275,7 +281,268 @@ u_i \left( \frac{1}{\lambda_1^{(t)}} - \frac{z_i}{e^{\lambda_1^{(t)} z_i} - 1} \
 Let $Q(\lambda_0, \lambda_1)$ be defined
 
 \begin{equation*}
-Q(\lambda_0, \lambda_1)  = 
+Q(\lambda_0, \lambda_1)
 = Q(\lambda_0, \lambda_1 | \lambda_0^{(t)}, \lambda_1^{(t)})
 = \E \left[ l(\lambda_0, \lambda_1 | \vect x, \vect y)  \big | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}\right]
 \end{equation*}
+
+We want to use the Expectation-Maximization (EM) algorithm as defined in Algorithm \ref{em_algorithm} to find the maximum likelihood estimates of $(\lambda_0, \lambda_1)$ iteratively. We denote these estimates $(\hat \lambda_0, \hat \lambda_1)$.
+
+\begin{algorithm}[H]
+\SetAlgoLined
+ \KwIn {Function $l(\lambda_0, \lambda_1 | \vect x, \vect y)$ and starting values $\lambda_0^{(0)}, \lambda_1^{(0)} $}
+ \KwOut {Maximum likelihood estimates for $(\lambda_0, \lambda_1)$.}
+ $t \gets 0$\;
+ \While{not converged}{
+  $Q(\lambda_0, \lambda_1) = \E \left[ l(\lambda_0, \lambda_1 | \vect x, \vect y)  \big | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}\right]$ \;
+  $(\lambda_0^{(t+1)}, \lambda_1^{(t+1)}) = \argmax_{(\lambda_0, \lambda_1)} Q(\lambda_0, \lambda_1) $\;
+    $t \gets t + 1$ \;
+ }
+ \Return{$(\hat \lambda_0, \hat \lambda_1) = (\lambda_0^{(t)}, \lambda_1^{(t)})$}
+ \caption{EM algorithm to maximize $l(\lambda_0, \lambda_1 |  \vect z, \vect u)$}
+ \label{em_algorithm}
+\end{algorithm}
+
+In Task C1 we found an expression for $Q(\lambda_0, \lambda_1)$. To be able to implement Algorithm \ref{em_algorithm} we need to find an expression for $\argmax_{(\lambda_0, \lambda_1)} Q(\lambda_0, \lambda_1)$. To maximize $Q(\lambda_0, \lambda_1)$ with respect to $(\lambda_0, \lambda_1)$ we set the partial derivatives equal to zero and solve for each of the parameters.
+
+\begin{align}
+  \frac{\partial}{\partial \lambda_0} Q(\lambda_0, \lambda_1) = 0 \nonumber \\
+  \frac{n}{\lambda_0} - \sum_{i=1}^n \left[ u_i z_i 
+  + (1 - u_i) \left( \frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp \{ \lambda_0^{(t)} z_i \} - 1} \right) \right ] = 0 \nonumber \\
+  \lambda_0 = \frac{n}
+  {\sum_{i=1}^n \left[ u_i z_i 
+  + (1 - u_i) \left( \frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp \{ \lambda_0^{(t)} z_i \} - 1} \right) \right ]} \label{eq:recursive_lambda0}
+\end{align}
+
+\begin{align}
+  \frac{\partial}{\partial \lambda_1} Q(\lambda_1, \lambda_1) = 0 \nonumber \\
+  \frac{n}{\lambda_1} - \sum_{i=1}^n \left[ (1 - u_i) z_i 
+  + u_i \left( \frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp \{ \lambda_1^{(t)} z_i \} - 1} \right) \right ] = 0
+  \nonumber \\
+  \lambda_1 = \frac{n}
+  {\sum_{i=1}^n \left[ (1-u_i) z_i 
+  + u_i \left( \frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp \{ \lambda_1^{(t)} z_i \} - 1} \right) \right ]} \label{eq:recursive_lambda1}
+\end{align}
+
+To ensure we have found a maximum we also check the second derivatives
+
+\begin{align*}
+\frac{\partial^2}{\partial \lambda_0^2} &= \frac{-n}{\lambda_0^2} < 0\\
+  \frac{\partial^2}{\partial \lambda_1^2} &= \frac{-n}{\lambda_1^2} < 0
+\end{align*}
+
+As the second derivatives are stricly negative for all $\lambda_0$ and $\lambda_1$ we know that we have found the values that maximizes $Q(\lambda_0, \lambda_1)$. From Equation (\ref{eq:recursive_lambda0}) and (\ref{eq:recursive_lambda1}) we have a recursive expression for the maximum likelihood estimates of $(\lambda_0, \lambda_1)$.
+
+Below we implement the EM-algorithm for this specific case and find the maximum likelihood estimates when the data is as specified in the files \textbf{z.txt} and \textbf{u.txt} available from the course home page. As stopping criteria we use that the maximum absolute value parameter change from one iteration to the next must be smaller than some chosen $\epsilon$, that is 
+$\max \left \{ |\lambda_0^{(t+1)} - \lambda_0^{(t)}|, |\lambda_1^{(t+1)} - \lambda_1^{(t)}| \right \} < \epsilon$.
+
+```{r}
+# implementation of the EM algorithm. 
+# Function for finding maximum likelihood estimates of lambda0 and lambda1 
+em.algorithm = function(z, u, lambda0, lambda1, epsilon = 1e-6) {
+  # initialize delta as higher than stopping critera
+  delta = 1 + epsilon
+  # create vectors for storing lambda0 and lambda1 values for each iteration
+  lambda0.vec = c(lambda0)
+  lambda1.vec = c(lambda1)
+  # calculate the length of z for use in the argmax expressions
+  n = length(z)
+  t = 1
+  while (delta > epsilon) {
+    # calculate new lambda0 and lambda1 values
+    lambda0.vec = c(lambda0.vec, 
+                       n / sum(u * z + (1 - u) * (1 / lambda0.vec[t] - z / (exp(lambda0.vec[t] * z) - 1) ) )
+    )
+    lambda1.vec = c(lambda1.vec,
+                    n / sum((1 - u) * z + u * (1 / lambda1.vec[t] - z / (exp(lambda1.vec[t] * z) - 1) ) )
+    )
+    t = t + 1
+    
+    # update delta to check if stopping criteria is satisfied
+    delta = max(abs(lambda0.vec[t] - lambda0.vec[t-1]), abs(lambda1.vec[t] - lambda1.vec[t-1]))
+  }
+  # get the number of iterations
+  n.iter = t-1
+  # create a data frame for storing parameter values for each iteration for easy plotting
+  df = data.frame(iter = seq(0,n.iter), lambda0 = lambda0.vec, lambda1 = lambda1.vec)
+  # same data frame on long format (also for easy plotting)
+  df.long = pivot_longer(df, -iter, names_to = "Parameter")
+  # return a list with useful values
+  return ( list(lambda0 = lambda0.vec[t],lambda1 = lambda1.vec[t],
+                lambda0.vec = lambda0.vec, lambda1.vec = lambda1.vec, n.iter = n.iter,
+                df = df, df.long = df.long))
+}
+```
+
+
+```{r}
+# fetch the data
+z = read.csv("z.txt")[,1]
+u = read.csv("u.txt")[,1]
+# find maximum likelihood estimates
+result.em = em.algorithm(z, u, 1, 1)
+```
+
+The maximum likelihood estimates of $(\lambda_0, \lambda_1)$ are $(\hat \lambda_0, \hat \lambda_1) = (`r round(result.em$lambda0, 3)`, `r round(result.em$lambda1, 3)`)$. Next we test the convergence of the algorithm for different initial values.
+
+```{r, fig.width=8, fig.height = 3, fig.cap = "\\label{fig:convergence_plot} Visualization of convergence for each of the parameters $(\\lambda_0,\\lambda_1)$ for three different initial values $(\\lambda_0^{(0)}, \\lambda_1^{(0)}) \\in [(1,1), (7,7), (15, 15)]$. As stopping criteria we use $\\textrm{max} [ |\\lambda_0^{(t+1)} - \\lambda_0^{(t)}|, |\\lambda_1^{(t+1)} - \\lambda_1^{(t)}| ] < 10^{-6}$."}
+# test for different initial values
+# choose the initial value combinations
+initial.lambda0 = c(1, 7, 15)
+initial.lambda1 = c(1, 7, 15)
+
+# create a data frame to store all the realizations
+df.em.long = data.frame()
+for (i in 1:length(initial.lambda0)) {
+  result.em.i = em.algorithm(z, u, initial.lambda0[i], initial.lambda1[i])
+  df.em.long = rbind(df.em.long, cbind(result.em.i$df.long, "initial.value" = toString(i)))
+}
+# visialize convergence for different initial values
+ggplot(df.em.long, aes(x = iter, y = value, col = initial.value)) + geom_line() +
+  
+  facet_wrap(~Parameter) + guides(col = guide_legend("Initial values")) +
+  
+  scale_color_discrete(labels = c("(1,1)", "(7,7)", "(15,15)")) +
+  
+  ggtitle("Convergence plot of estimates")
+```
+
+From Figure \ref{fig:convergence_plot} we see that the algorithm quickly converges for all three initial conditions. The estimate for $\lambda_0$ appear to be almost converged after only a single iteration, while the estimate for $\lambda_1$ seem to need around 5 iterations for the same level of precicion. After 16 iterations all three initial positions were converged according to $\epsilon = 10^{-6}$.
+
+## 3)
+
+In this task we use bootstrapping to estimate the standard deviations and the biases of each of $\hat \lambda_0$ and $\hat \lambda_1$ along with an estimate for $\Corr [\hat \lambda_0, \hat \lambda_1]$. First we define som notation. We will bootstrap $B$ new datasets $(\vect z^{b*}, \vect u^{b*}), \; b = 1, \dots, B$. These datasets will each be used to calculate the two estimators of interest $(\hat \lambda_0^{b*}, \hat \lambda_1^{b*})$ using Algorithm \ref{em_algorithm} on $(\vect z^{b*}, \vect u^{b*})$. From the $B$ pairs of parameter estimates we can estimate the standard deviations of $\hat \lambda_0$ and $\hat \lambda_1$ in addition to the correlation between them.
+
+\begin{align*}
+  \widehat {\sd_{B}[\hat \lambda_0]} &= \sqrt{\frac{1}{B-1} \sum_{b=1}^B (\lambda_0^{b*} -\bar \lambda_0^*)^2} \\
+  \widehat {\sd_{B}[\hat \lambda_1]} &= \sqrt{\frac{1}{B-1} \sum_{b=1}^B (\lambda_1^{b*} -\bar \lambda_1^*)^2} \\
+  \widehat {\Corr_{B}[\hat \lambda_0, \hat \lambda_1]} &= \sqrt{\frac{1}{B-1} 
+  \sum_{b=1}^B (\lambda_0^{b*} -\bar \lambda_0^*)(\lambda_1^{b*} -\bar \lambda_1^*)}
+\end{align*}
+
+where
+
+\begin{align*}
+  \bar \lambda_0^* &= \frac{1}{B} \sum_{b=1}^{B} \lambda_0^{b*} \\
+  \bar \lambda_1^* &= \frac{1}{B} \sum_{b=1}^{B} \lambda_1^{b*}.
+\end{align*}
+
+Additionally, we can calculate an estimate for the biases of $\hat \lambda_0$ and $\hat \lambda_1$ using the expressions below.
+
+\begin{equation} \label{eq:bias}
+  \begin{split}
+  \widehat {\bias_B [\hat \lambda_0]} &= \hat \lambda_0 - \bar \lambda_0^{*} \\
+  \widehat {\bias_B [\hat \lambda_1]} &= \hat \lambda_1 - \bar \lambda_1^{*}
+  \end{split}
+\end{equation}
+
+An improved bias estimate can also be calculated, but requires more complex notation to properly explain. Let $F$ be the cumulative distribution function that we assume $(\vect z, \vect u)$ is sampled from and let $\theta = (\lambda_0, \lambda_1) = T(F)$ be a functional of $F$. We let $\hat F$ be the empirical distribution function of the observed data $(\vect z, \vect u)$ and $\hat F^{b*}, \; b = 1, \dots, B$ be the empirical distribution functon of the corresponding bootstrap sample $(\vect z^{b*}, \vect u^{b*})$. The statistical function of bias can be written as $R((\vect Z, \vect U), F) = T(\hat F) - T(F)$. The bias estimate in Equation (\ref{eq:bias}) was derived as $\frac{1}{B} \sum_{b=1}^B \left( T(\hat F^{b*}) - T(\hat F) \right)$. According to \cite{} an improved bias estimate is
+
+\begin{equation*}
+ \hat {R}((\vect Z, \vect U), F) = \frac{1}{B} \sum_{b=1}^B \left( T(\hat F^{b*}) - T(\hat \bar F^*) \right)
+ = \bar \theta^* - T(\bar F^*)
+\end{equation*}
+
+??????????????????????? Should I use widehat over whole R expression?
+
+where
+
+\begin{equation*}
+  \bar F^* = \frac{1}{B} \sum_{b=1}^B \hat F^{b*}
+\end{equation*}
+
+and $\bar \theta^* = (\bar \lambda_0^*, \bar \lambda_1^*)$.
+
+
+```{r}
+# fast implementation of the EM algorithm that only stores and returns
+# the final values of lambda0 and lambda1. 
+# Function for finding maximum likelihood estimates of lambda0 and lambda1 
+fast.em.algorithm = function(z, u, lambdas.initial, epsilon = 1e-6) {
+  # initialize delta as higher than stopping critera
+  delta = 1 + epsilon
+  # Create variable for storing previous iteration value of lambda0 and lambda1 values for each iteration
+  lambda0.prev = lambdas.initial[1]
+  lambda1.prev = lambdas.initial[2]
+  # calculate the length of z for use in the argmax expressions
+  n = length(z)
+  while (delta > epsilon) {
+    # calculate new lambda0 and lambda1 values
+    lambda0 = n / sum(u * z + (1 - u) * (1 / lambda0.prev - z / (exp(lambda0.prev * z) - 1) )
+    )
+    lambda1 = n / sum((1 - u) * z + u * (1 / lambda1.prev - z / (exp(lambda1.prev * z) - 1) )
+    )
+    
+    # update delta to check if stopping criteria is satisfied
+    delta = max(abs(lambda0 - lambda0.prev), abs(lambda1 - lambda1.prev))
+    
+    # update previous iteration value of lamba0 and lambda1 with newly calculated values
+    lambda0.prev = lambda0
+    lambda1.prev = lambda1
+  }
+  # return final estimates for lambda0 and lambda1
+  return ( c(lambda0, lambda1))
+}
+```
+
+```{r}
+# function
+bootstrap.lambdas = function(z, u, B = 1000, initial.lambda0 = 1, initial.lambda1 = 1, epsilon = 1e-6) {
+  # initialize matrix for store bootstrapped lambda0 and lambda1 estimates
+  lambdas.bootstrap = matrix(NA, ncol = 2, nrow = B+1)
+  # the first row is only used for initializing the algorithm and will later be removed
+  lambdas.bootstrap[1,] = c(initial.lambda0, initial.lambda1)
+  n = length(z)
+  z.bootstrap.all = rep(NA, B*n)
+  u.bootstrap.all = rep(NA, B*n)
+  for (i in 1:B) {
+    drawn.obs = sample(1:n, n, replace=TRUE)
+    z.bootstrap = z[drawn.obs]
+    u.bootstrap = u[drawn.obs]
+    lambdas.bootstrap[i+1,] = fast.em.algorithm(z.bootstrap, u.bootstrap, lambdas.bootstrap[i,], epsilon)
+    z.bootstrap.all[(1+n*(i-1)):(n*i)] = z.bootstrap
+    u.bootstrap.all[(1+n*(i-1)):(n*i)] = u.bootstrap
+    
+  }
+  # removing the initial values from the lambdas matrix
+  lambdas.bootstrap = lambdas.bootstrap[-1,]
+  
+  lambdas.bootstrap.mean = apply(lambdas.bootstrap, 2, mean)
+  lambdas.bootstrap.sd = apply(lambdas.bootstrap, 2, sd)
+  
+  lambdas.est = fast.em.algorithm(z, u, lambdas.bootstrap.mean, epsilon)
+  
+  
+  print("starting")
+  lambdas.est.from.mean.cumulative.dist = fast.em.algorithm(z.bootstrap.all, u.bootstrap.all,
+                                                            c(1,1), epsilon)
+  
+  print(lambdas.est.from.mean.cumulative.dist)
+  
+  return(list(lambda0.est = lambdas.est[1],
+              
+              lambda1.est = lambdas.est[2],
+              
+              lambda0.bootstrap.mean = lambdas.bootstrap.mean[1],
+              
+              lambda1.bootstrap.mean = lambdas.bootstrap.mean[2],
+              
+              lambda0.bias.est = lambdas.bootstrap.mean[1] - lambdas.est[1],
+              
+              lambda1.bias.est = lambdas.bootstrap.mean[2] - lambdas.est[2],
+              
+              lambda0.bias.est.improved = lambdas.bootstrap.mean[1] - lambdas.est.from.mean.cumulative.dist[1],
+              
+              lambda1.bias.est.improved = lambdas.bootstrap.mean[2] - lambdas.est.from.mean.cumulative.dist[2],
+              
+              lambda0.bootstrap.sd = lambdas.bootstrap.sd[1],
+              
+              lambda1.bootstrap.sd = lambdas.bootstrap.sd[2],
+              
+              corr.lambda0.lambda1 = corr(lambdas.bootstrap)
+              ))
+}
+
+bootstrap.lambdas(z, u, B = 2000, epsilon = 1e-6)
+```
+
