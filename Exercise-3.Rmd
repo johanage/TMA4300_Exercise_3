@@ -84,9 +84,13 @@ eps_residuals_LA = ARp.resid(x = data3A$x, beta = minisers_ar2$LA)
 
 #initialise values for x1 and x2 
 #by picking a random consecutive subsequence from the data
+
+"Agenda:
+- det er ikke bare 50 mulige par, men 99
+- eks: x1x2, x2x3, x3x4, ..."
 sample_consecutive = function(x){
   #set seed for reproducability
-  set.seed(2021)
+  #set.seed(2021)
   x_reshaped = matrix(unlist(t(x)), byrow=T, 50, 2)
   idx = sample(seq(1,50), size = 1, replace = FALSE)
   x_sample_pair = x_reshaped[idx,]
@@ -121,15 +125,20 @@ Agenda:
   - and for b = 1,2,...,B
 - Estimate the empirical SD(theta_hat*) by the formula for SE_B^
 - compute theta_hat*(dot)
-
+- estimate the variance and the bias of the estimators, but what is the estimators here?
+  - is it beta1 and beta2
+  - is it epsilon_LA and epsilon_LS, aka the residuals of the two lossfunction definitions
 "
 
 # bootstrap resampling
 residual_bootstrap_resampling = function(x, p, B){
   samples_LS = c()
   samples_LA = c()
-  sd_LS = c()
-  sd_LA = c()
+  beta_est_LS = c()
+  beta_est_LA = c()
+  beta_vec_OG = ARp.beta.est(x = x, p = p)
+  eps_LS = ARp.resid(x = x, beta = beta_vec_OG$LS)
+  eps_LA = ARp.resid(x = x, beta = beta_vec_OG$LA)
   for(i in 1:B){
     " Done equally for both methods LS, LA
     Algo:
@@ -140,50 +149,50 @@ residual_bootstrap_resampling = function(x, p, B){
     5. Add sd for current sample to list of sds
     6. Calc the estimator for the SD
     "
-    
+    #sample pair from original time series data
     x_pair = sample_consecutive(x = x)
-    beta_vecs = ARp.beta.est(x = x, p = p)
-    eps_LS = ARp.resid(x = x, beta = beta_vecs$LS)
-    eps_LA = ARp.resid(x = x, beta = beta_vecs$LA)
+    
+    # generate beta ector for LS and LA
+    # using minimiserts from the bootstrapped data
+    "Questions:
+    - use same betas for every bootstrap or use the bootstrap data to minimize loss functions?"
+    
     x_LS = ARp.filter(x0 = x_pair, 
-                         beta = beta_vecs$LS, 
+                         beta = beta_vec_OG$LS, 
                          e = sample(eps_LS, size=length(eps_LS), replace=TRUE))
-    sd_LS = c(sd_LS, sqrt(var(x_LS)))
+    beta_vec_star = ARp.beta.est(x = x_LS, p = p)
+    beta_est_LS = c(beta_est_LS, beta_vec_star$LS)
     # print(sqrt(var(x_LS)))
     samples_LS = c(samples_LS, x_LS)
     
     
+    
     x_LA = ARp.filter(x0 = x_pair, 
-                         beta = beta_vecs$LA, 
+                         beta = beta_vec_OG$LA, 
                          e = sample(eps_LA, size=length(eps_LA), replace=TRUE))
-    sd_LA = c(sd_LA, sqrt(var(x_LA)))
     samples_LA = c(samples_LA, x_LA)
+    beta_vec_star = ARp.beta.est(x = x_LA, p = p)
+    beta_est_LA = c(beta_est_LA, beta_vec_star$LA)
   }
-  hat_SE_B_LS = sqrt(sum((sd_LS - mean(sd_LS))^2)/(B -1))
-  hat_SE_B_LA = sqrt(sum((sd_LA - mean(sd_LA))^2)/(B -1))
+  hat_SE_B_LS = sum((beta_est_LS - mean(beta_est_LS))^2)/(B -1)
+  hat_SE_B_LA = sum((beta_est_LA - mean(beta_est_LA))^2)/(B -1)
   df_boot = data.frame(LS = samples_LS, LA = samples_LA, 
-                       est_sd_LS = hat_SE_B_LS,
-                       est_sd_LA = hat_SE_B_LA)
+                       est_sd_beta_LS = hat_SE_B_LS,
+                       est_sd_beta_LA = hat_SE_B_LA,
+                       bias_beta_LS = hat_SE_B_LS - mean(beta_est_LS),
+                       bias_beta_LA = hat_SE_B_LA - mean(beta_est_LA))  
   return(df_boot)
 }
 
 #estimating  the variance and bias of the two estimators
 boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 2000)
-# hist(data3A$x)
-# hist(boot1$LS)
-# hist(boot1$LA)
-# var_boot1_LS = var(boot1$LS)
-# print(var_boot1_LS)
-# var_boot1_LA = var(boot1$LA)
-# print(var_boot1_LA)
+print(paste0("Variance of the betas: LS = ", boot1$est_sd_beta_LS[1]," and LA = ", boot1$est_sd_beta_LA[1]))
 
 #computing bias:
-print(paste0("Mean of the data", mean(data3A$x)))
-bias_LS = boot1$est_sd_LS[1] - mean(data3A$x)
-bias_LA = boot1$est_sd_LA[1] - mean(data3A$x)
-print(bias_LS)
-print(bias_LA)
-#estimating variance and bias of the two estimators after bootstrap
+print("Bias of the two estimators:")
+print(boot1$bias_beta_LS[1])
+print(boot1$bias_beta_LA[1])
+
 ```
 
 
