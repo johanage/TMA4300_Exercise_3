@@ -702,9 +702,10 @@ bootstrap.lambdas = function(z, u, B = 1000, initial.lambda0 = 1, initial.lambda
 
 set.seed(1)
 result.bootstrap = bootstrap.lambdas(z, u, B = 2000, epsilon = 1e-6)
+result.bootstrap
 ```
 
-In Table \ref{table:bootstrap_output} it is listed the standard deviation, biases and correlation between $(\hat \lambda_0, \hat \lambda_1)$. All the estimates are calculated using Algorithm \ref{bootstrap_algorithm}. Both of the standard deviation estimates and the correlation estimate appear reasonable. We observe that there is hardly any correlation between the two estimators $\hat \lambda_0$ and $\hat \lambda_1$.
+In Table \ref{table:bootstrap_output} it is listed the standard deviations, biases and correlation between $(\hat \lambda_0, \hat \lambda_1)$. All the estimates are calculated using Algorithm \ref{bootstrap_algorithm}. Both of the standard deviation estimates and the correlation estimate appear reasonable. We observe that there is hardly any correlation between the two estimators $\hat \lambda_0$ and $\hat \lambda_1$.
 
 \begin{table}[!h]
 \centering
@@ -712,19 +713,28 @@ In Table \ref{table:bootstrap_output} it is listed the standard deviation, biase
 \hline
 Variable & Bootstrap estimate \\
 \hline
-$\widehat {\mathrm{\sd}}_B[\hat \lambda_0]$ & `r round(result.bootstrap$lambda0.bootstrap.sd,3)` \\
-$\widehat {\sd}_B[\hat \lambda_1]$ & `r round(result.bootstrap$lambda1.bootstrap.sd,3)` \\
-$\widehat {\Corr}_B[\hat \lambda_0, \hat \lambda_1]$ & `r round(result.bootstrap$corr.lambda0.lambda1,3)` \\
-$\widehat {\bias}_B[\hat \lambda_0]$ & `r round(result.bootstrap$lambda0.bias.est,3)`\\ 
-$\widehat {\bias}_{B,\textrm{improved}}[\hat \lambda_0]$ & `r round(result.bootstrap$lambda0.bias.est.improved,3)`\\
-$\widehat {\bias}_B[\hat \lambda_1]$ & `r round(result.bootstrap$lambda1.bias.est,3)`\\
-$\widehat {\bias}_{B,\textrm{improved}}[\hat \lambda_1]$ & `r round(result.bootstrap$lambda1.bias.est.improved,3)`\\
+$\widehat {\mathrm{\sd}}_B[\hat \lambda_0]$ & `r round(result.bootstrap$lambda0.bootstrap.sd,4)` \\
+$\widehat {\sd}_B[\hat \lambda_1]$ & `r round(result.bootstrap$lambda1.bootstrap.sd,4)` \\
+$\widehat {\Corr}_B[\hat \lambda_0, \hat \lambda_1]$ & `r round(result.bootstrap$corr.lambda0.lambda1,4)` \\
+$\widehat {\bias}_B[\hat \lambda_0]$ & `r round(result.bootstrap$lambda0.bias.est,4)`\\ 
+$\widehat {\bias}_{B,\textrm{improved}}[\hat \lambda_0]$ & `r round(result.bootstrap$lambda0.bias.est.improved,4)`\\
+$\widehat {\bias}_B[\hat \lambda_1]$ & `r round(result.bootstrap$lambda1.bias.est,4)`\\
+$\widehat {\bias}_{B,\textrm{improved}}[\hat \lambda_1]$ & `r round(result.bootstrap$lambda1.bias.est.improved,4)`\\
 \hline
 \end{tabular}
 \caption{Table containing the output from Algorithm \ref{bootstrap_algorithm} with $(\vect z, \vect u)$ as input observed data, $(\lambda_0^{(0)}, \lambda_1^{(0)}) = (1,1)$ and $B = 2000$.}
 \label{table:bootstrap_output}
 \end{table}
 
-From Table \ref{table:bootstrap_output} we see that the bias estimates for $\hat \lambda_0$ is very similar for both methods for estimating bias. For $\hat \lambda_1$, however, the improved bias estimate is around twice as large as the other bias estimate. We choose to rely on the improved bias estimate.
+From Table \ref{table:bootstrap_output} we see that the bias estimates for $\hat \lambda_0$ is very similar for both methods for estimating bias. For $\hat \lambda_1$, however, the improved bias estimate is around twice as large as the other bias estimate. We choose to rely on the improved bias estimate. Consequently, the bias corrected estimates for $\lambda_0$ and $\lambda_1$ are
 
+\begin{align*}
+\hat \lambda_0^c &= \hat \lambda_0 - \widehat {\bias}_{B,\textrm{improved}}[\hat \lambda_0] \\
+&= `r round(result.em$lambda0, 4)` - `r round(result.bootstrap$lambda0.bias.est.improved,4)` \\
+&= `r round(result.em$lambda0 - result.bootstrap$lambda0.bias.est.improved,4)` \\
+\hat \lambda_1^c &= \hat \lambda_1 - \widehat {\bias}_{B,\textrm{improved}}[\hat \lambda_1] \\
+&= `r round(result.em$lambda1, 4)` - `r round(result.bootstrap$lambda1.bias.est.improved,4)` \\
+&= `r round(result.em$lambda1 - result.bootstrap$lambda1.bias.est.improved,4)`
+\end{align*}
 
+As the bias estimates are quite small compared to the estimates of $\lambda_0$ and $\lambda_1$ we prefer the maximum likelihood estimates $(\hat \lambda_0, \hat \lambda_1) = (`r round(result.em$lambda0, 4)`, `r round(result.em$lambda1, 4)`)$ over the bias corrected estimates $(\lambda_0^c, \lambda_1^c) = (`r round(result.bootstrap$lambda0.bias.est.improved,4)`, `r round(result.bootstrap$lambda1.bias.est.improved,4)`)$ since $\Var[\hat \lambda_0^c] \geq \Var[\hat \lambda_0]$ and $\Var[\hat \lambda_1^c] \geq \Var[\hat \lambda_1]$.
