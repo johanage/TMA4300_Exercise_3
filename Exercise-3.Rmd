@@ -655,7 +655,8 @@ bootstrap.lambdas = function(z, u, B = 1000, initial.lambda0 = 1, initial.lambda
     u.bootstrap = u[drawn.obs]
     # using the bootstrapped data, calculate the maximum likelihood estimates of
     # lambda0 and lambda1 using em algorithm
-    lambdas.bootstrap[i+1,] = fast.em.algorithm(z.bootstrap, u.bootstrap, lambdas.bootstrap[i,], epsilon)
+    lambdas.bootstrap[i+1,] = fast.em.algorithm(z.bootstrap, u.bootstrap,
+                                                lambdas.bootstrap[i,], epsilon)
     # store the bootstrapped datasets
     z.bootstrap.all[(1+n*(i-1)):(n*i)] = z.bootstrap
     u.bootstrap.all[(1+n*(i-1)):(n*i)] = u.bootstrap
@@ -688,9 +689,13 @@ bootstrap.lambdas = function(z, u, B = 1000, initial.lambda0 = 1, initial.lambda
               
               lambda1.bias.est = lambdas.bootstrap.mean[2] - lambdas.est[2],
               
-              lambda0.bias.est.improved = lambdas.bootstrap.mean[1] - lambdas.est.from.mean.cumulative.dist[1],
+              lambda0.bias.est.improved = lambdas.bootstrap.mean[1] -
+                
+                lambdas.est.from.mean.cumulative.dist[1],
               
-              lambda1.bias.est.improved = lambdas.bootstrap.mean[2] - lambdas.est.from.mean.cumulative.dist[2],
+              lambda1.bias.est.improved = lambdas.bootstrap.mean[2] -
+                
+                lambdas.est.from.mean.cumulative.dist[2],
               
               lambda0.bootstrap.sd = lambdas.bootstrap.sd[1],
               
@@ -702,7 +707,6 @@ bootstrap.lambdas = function(z, u, B = 1000, initial.lambda0 = 1, initial.lambda
 
 set.seed(1)
 result.bootstrap = bootstrap.lambdas(z, u, B = 2000, epsilon = 1e-6)
-result.bootstrap
 ```
 
 In Table \ref{table:bootstrap_output} it is listed the standard deviations, biases and correlation between $(\hat \lambda_0, \hat \lambda_1)$. All the estimates are calculated using Algorithm \ref{bootstrap_algorithm}. Both of the standard deviation estimates and the correlation estimate appear reasonable. We observe that there is hardly any correlation between the two estimators $\hat \lambda_0$ and $\hat \lambda_1$.
@@ -737,4 +741,123 @@ From Table \ref{table:bootstrap_output} we see that the bias estimates for $\hat
 &= `r round(result.em$lambda1 - result.bootstrap$lambda1.bias.est.improved,4)`
 \end{align*}
 
-As the bias estimates are quite small compared to the estimates of $\lambda_0$ and $\lambda_1$ we prefer the maximum likelihood estimates $(\hat \lambda_0, \hat \lambda_1) = (`r round(result.em$lambda0, 4)`, `r round(result.em$lambda1, 4)`)$ over the bias corrected estimates $(\lambda_0^c, \lambda_1^c) = (`r round(result.bootstrap$lambda0.bias.est.improved,4)`, `r round(result.bootstrap$lambda1.bias.est.improved,4)`)$ since $\Var[\hat \lambda_0^c] \geq \Var[\hat \lambda_0]$ and $\Var[\hat \lambda_1^c] \geq \Var[\hat \lambda_1]$.
+As the bias estimates are quite small compared to the estimates of $\lambda_0$ and $\lambda_1$ we prefer the maximum likelihood estimates $(\hat \lambda_0, \hat \lambda_1) = (`r round(result.em$lambda0, 4)`, `r round(result.em$lambda1, 4)`)$ over the bias corrected estimates $(\hat \lambda_0^c, \hat \lambda_1^c) = (`r round(result.em$lambda0 - result.bootstrap$lambda0.bias.est.improved,4)`, `r round(result.em$lambda1 - result.bootstrap$lambda1.bias.est.improved,4)`)$ since $\Var[\hat \lambda_0^c] \geq \Var[\hat \lambda_0]$ and $\Var[\hat \lambda_1^c] \geq \Var[\hat \lambda_1]$.
+
+
+
+## 4)
+
+An analytical formula for $f_{Z_i, U_i}(z_i, u_i | \lambda_0, \lambda_1)$ can be derived as
+
+\begin{align*}
+f_{Z_i, U_i}(z_i, u_i | \lambda_0, \lambda_1) 
+&= u_i \cdot P(x_i = z_i | \lambda_0) \cdot P(y_i \leq z_i | \lambda_1) 
++ (1- u_i) P(x_i \leq z_i | \lambda_0) \cdot P(y_i = z_i | \lambda_0) \\
+&= u_i \cdot \lambda_0 e^{-\lambda_0 z_i} \cdot \left[ \int_0^{z_i} \lambda_1 e^{- \lambda_1 y_i} dy_i \right]
++ (1 - u_i) \cdot \left[ \int_0^{z_i} \lambda_0 e^{- \lambda_0 x_i} dx_i\right] \cdot \lambda_1 e^{-\lambda_1 z_i} \\
+&= u_i \cdot \lambda_0 e^{-\lambda_0 z_i} \cdot \left( 1 - e^{- \lambda_1 z_i} \right)
++ (1 - u_i) \cdot \left(1 - \lambda_0 e^{- \lambda_0 z_i} \right) \cdot \lambda_1 e^{-\lambda_1 z_i}
+\end{align*}
+
+The likelihood of $(\lambda_0, \lambda_1)$ given the observed data $(\vect z, \vect u)$ is
+
+\begin{align*}
+L(\lambda_0, \lambda_1 | \vect z, \vect u) &= f_{\vect Z, \vect U}(\vect z, \vect u | \lambda_0, \lambda_1) \\
+&= \prod_{i=1}^n f_{Z_i, U_i}(z_i, u_i | \lambda_0, \lambda_1) \\
+&= \prod_{i=1}^n \left[
+u_i \cdot \lambda_0 e^{-\lambda_0 z_i} \cdot \left( 1 - e^{- \lambda_1 z_i} \right)
++ (1 - u_i) \cdot \left(1 - \lambda_0 e^{- \lambda_0 z_i} \right) \cdot \lambda_1 e^{-\lambda_1 z_i}
+\right]
+\end{align*}
+
+Since either $u_i = 1 \land (1-u_i) = 0$ or $u_i = 0 \land (1-u_i) = 1$ we have that the log likelihood of $(\lambda_0, \lambda_1)$ given the observed data $(\vect z, \vect u)$ is
+
+\begin{align*}
+l(\lambda_0, \lambda_1 | \vect z, \vect u) &=
+\log(L(\lambda_0, \lambda_1 | \vect z, \vect u)) \\
+&= \sum_{i=1}^n 
+\left( 
+u_i \left[ \ln(\lambda_0) - \lambda_0 z_i + \ln(1-e^{- \lambda_1 z_i}) \right]
++ (1 - u_i) \left[ \ln(1-e^{- \lambda_0 z_i}) + \ln(\lambda_1) - \lambda_1 z_i \right]
+\right)
+\end{align*}
+
+The maximum likelihood estimators (MLE) are $(\hat \lambda_0, \hat \lambda_1) =\argmax_{(\lambda_0, \lambda_1)} = L(\lambda_0, \lambda_1 | \vect z, \vect u) = \argmax_{(\lambda_0, \lambda_1)} l(\lambda_0, \lambda_1 | \vect z, \vect u)$. Unfortunately, it is not possible to find analytical formulas for the maximum likelihood estimators. We can, however, find the MLE numerically. An advantage of optimizing the likelihood directly compared to the EM algorithm is that when optimizing the likelihood directly the standard deviations of $\hat \lambda_0, \hat \lambda_1$ and the correlation between them is directly available without bootstrapping.
+
+Let $\hat {\vect \lambda} = [\hat \lambda_0, \hat \lambda_1]^T$. To get an estimate for $\Cov [\hat {\vect \lambda}]$ we use that for independent samples we have that asymptotically as the number of samples goes to infinity the maximum likelihood estimates have the distribution
+
+\begin{equation*}
+\hat {\vect \lambda} \sim \mathcal{N}(\vect \lambda, H(\vect \lambda)^{-1})
+\end{equation*}
+
+where $H$ is the observed Fisher matrix
+
+\begin{equation*}
+H(\vect \lambda) = - \frac{\partial^2}{\partial \vect \lambda \partial \vect \lambda^T} l(\vect \lambda | \vect z, \vect u)
+\end{equation*}
+
+?????????????? Must we talk about or use expected Fisher matrix?
+
+Below we optimize the log likelihood function $l(\lambda_0, \lambda_1 | \vect z, \vect u)$ and use that $H(\vect \lambda) \approx H(\hat {\vect \lambda})$ to estimate standard deviations and correlations between the estimators $(\hat \lambda_0, \hat \lambda_1)$.
+
+```{r}
+# Create the log likelihood function that shall be optimized with respect to lambda0 and lambda1
+log.likelihood = function(lambdas, z, u) {
+  return(sum(u * (log(lambdas[1]) - lambdas[1] * z + log(1 - exp(-lambdas[2] * z)))
+             + (1-u) * (log(1 - exp(-lambdas[1] * z)) + log(lambdas[2]) - lambdas[2] * z) ) )
+}
+
+
+initial.lambdas = c(1,1) # for initializaing the numerical search
+set.seed(1) # set seed for reproducible results
+# optimize the log likelihood function with respect to lambda0 and lambda1
+# also calculate the Hessian matrix at the optimal values for lambda0 and lambda1
+# use fnscale = -1 for maximization instead of minimization
+# limit lambda0 and lambda1 to be larger than 0
+optim.result = optim(initial.lambdas, log.likelihood, NULL, z, u, control = list(fnscale = -1), hessian=TRUE, lower=c(0,0))
+# calculate the mle estimate of the covariance matrix of the estimators for [lambda0, lambda1]
+cov.lambdas.mle = solve(- optim.result$hessian)
+# print the mle estimate of the covariance matrix of the estimator for [lambda0, lambda1]
+cov.lambdas.mle
+
+# calculate standard deviations and correlation between lambda0 and lambda1 estimators
+lambda0.sd.mle = sqrt(cov.lambdas.mle[1,1])
+lambda1.sd.mle = sqrt(cov.lambdas.mle[2,2])
+corr.lambda0.lambda1.mle = cov.lambdas.mle[1,2] / (lambda0.sd.mle * lambda1.sd.mle)
+```
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{| l | r | r|}
+\hline
+Variable & EM estimate & MLE estimate \\
+\hline
+$ \hat \lambda_0$ & `r round(result.em$lambda0,4)` & `r round(optim.result$par[1],4)` \\
+$ \hat \lambda_1$ & `r round(result.em$lambda1,4)` & `r round(optim.result$par[2],4)` \\
+\hline
+\end{tabular}
+\caption{Comparison of estimates for $\lambda_0$ and $\lambda_1$ computed with Expectation-Maximization (EM) algorithm or direct maximization of likelihood function.}
+\label{table:em_mle_comparison}
+\end{table}
+
+In Table \ref{table:em_mle_comparison} we compare the estimates from the EM-algorithm against the estimates from direct numerical maximization of the log-likelihood function. The estimates from both methods are very similar, in fact they are identical to at least 4 decimals accuracy. This is to be expected as they both are based on numerical maximization of the likelihood function.
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{| l | r | r|}
+\hline
+Variable & Bootstrap estimate & MLE estimate \\
+\hline
+$\widehat {\mathrm{\sd}}[\hat \lambda_0]$ & $`r round(result.bootstrap$lambda0.bootstrap.sd,4)`$ & 
+`r round(lambda0.sd.mle,4)`\\
+$\widehat {\sd}[\hat \lambda_1]$ & $`r round(result.bootstrap$lambda1.bootstrap.sd,4)`$ &
+`r round(lambda1.sd.mle,4)`\\
+$\widehat {\Corr}[\hat \lambda_0, \hat \lambda_1]$ & $`r round(result.bootstrap$corr.lambda0.lambda1,4)`$ &
+`r round(corr.lambda0.lambda1.mle,4)`\\
+\hline
+\end{tabular}
+\caption{Comparison of estimates for standard deviations of and correlation between $\hat \lambda_0$ and $\hat \lambda_1$ computed with bootstraping or direct maximization of likelihood function.}
+\label{table:bootstrap_mle_comparison}
+\end{table}
+
+In Table \ref{table:bootstrap_mle_comparison} we compare estimates of standard deviations and correlation between the bootstrapping method and through direct maximization of likelihood function. The estimates from the two methods are quite similar, but as expected they differ a little. We conclude that both methods appear to give acceptable results.
