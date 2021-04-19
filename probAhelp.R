@@ -59,7 +59,6 @@ ARp.filter = function(x0, beta, e) {
     # time series. Further it requires the reverse intial sequence
     # as argument.
     x = stats::filter(e, beta, method="recursive", init=rx0)
-
     return(c(x0, x))
 }
 

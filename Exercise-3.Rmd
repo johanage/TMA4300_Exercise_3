@@ -117,6 +117,19 @@ plot(calc_x_LA)
 
 ### 1.2 Specifically, estimate the variance and bias of the two estimators.
 
+The two parameters of interest are $\mathbf{\beta}$ and the estimators for the minimisers is $\hat{\mathbf{\beta}}_{LS}$ and $\hat{\mathbf{\beta}}_{LA}$ with respect to the loss functions $Q_{LS}$ and $Q_{LA}$. We want to estimate the variance of the estimators. This is given by $\mathrm{Var}(\hat{\mathbf{\beta}}_{LS})$ and $\mathrm{Var}(\hat{\mathbf{\beta}}_{LA})$ where we use the plug-in principle to estimate the variance. The following algorithm for calculating the variance and bias for the estimators in the residual bootstrapping is then given by:
+
+1. Generate $B$ bootstrap samples $x^{1*}, \dots, x^{B*}$.
+2. Evaluate the corresponding parameter estimates: $\hat{\beta}^{*}(b) = s(x^{b*}), b = 1,2, \dots, B$.
+3. Estimate the variance by:
+\begin{equation}
+\hat{\mathrm{Var}}_B = \frac{ \sum_{b=1}^B \left( \hat{\beta}^{*}(b) - \hat{\beta}^{*}(\cdot) \right)^2 }{B-1}.
+\end{equation}
+where:
+\begin{equation}
+\hat{\beta}^{*}(\cdot) \equiv \frac{1}{B}\sum_{b=1}^B \hat{\beta}^{*}(b)
+\end{equation}
+
 ```{r}
 
 "
