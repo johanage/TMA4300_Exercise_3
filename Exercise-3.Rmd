@@ -328,10 +328,9 @@ permutation.test = function(df, Fval, B = 999, plot.hist = TRUE) {
       
       ggtitle("Histogram of the F-statistic under the null hypothesis") +
       
-      geom_vline(aes(xintercept=Fval, col = "F-statistic calculated from original dataset"), data = data.frame(Fval = Fval[1]), linetype = "dashed") + theme(legend.position = "bottom") +
+      geom_vline(aes(xintercept=Fval, col = "F-statistic calculated from original dataset"), data = data.frame(Fval = Fval[1]), linetype = "dashed") +
       
-      guides(col = guide_legend("Vertical line"))
-      
+      theme(legend.position = "bottom") + guides(col = guide_legend("Vertical line"))
       
     print(fig.hist)
   }
