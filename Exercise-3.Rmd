@@ -211,23 +211,134 @@ The LS estimator is optimal for Gaussian AR(p) processes.
 
 # Problem B Permutation Test
 
+In this task we look at data that contain measurements of the concentration of bilirubin (mg/dL) in blood samples taken from three young men. Bilirubin is a breakdown product of haemoglobin, which is a principal component of red blood cells. If the liver has suffered degeneration, if the decomposition of haemoglobin is elevated, or if the gall bladder has been  destroyed, large amounts of bilirubin can accumulate in the blood, leading to jaundice. We will use the F-statistic to perform a Permutation test.
+
+?????????????????? Must we say what the F-statistic is defined as?
+
 ```{r}
-bilirubin <- read.table("bilirubin.txt",header=T)
-head(bilirubin)
-
-
-"Use a boxplot to inspect the logarithms of the concentrations for each individual. Be careful to use the same y-axis to make the plots comparable. Use the function lm in R to fit the regression model log Yij = βi + epsilon_ij , with i = 1, 2, 3 and j = 1, . . . , ni (1)
-where n1 = 11, n2 = 10 and n3 = 8, and epsilon_ij iid∼ N (0, σ2). Use the F-test to test the hypothesis that β1 = β2 = β3 and save the value of the F-statistic as Fval. Is the hypothesis accepted?"
-model_bilirubin <- lm(log(meas)~pers,data=bilirubin)
-F_statistic = summary.lm(model_bilirubin)
-
-"Write a function permTest() which generates a permutation of the data between the three individuals, consequently fits the model given in (1) and finally returns the value of the F-statistic for testing β1 = β2 = β3."
-permTest = function() {return(0)}
-
-
-"Perform a permutation test using the function permTest to generate a sample of size 999 for the F-statistic. Compute the p-value for Fval using this sample. What do you observe?
-"
+# Fetching the data
+df.bilirubin <- read.table("bilirubin.txt", header=T)
 ```
+
+
+## 1)
+
+To begin we fit a boxplot of the logarithms of concentrations for each individual.
+
+
+```{r, fig.width = 6, fig.cap="\\label{fig:boxplot} Boxplot for the logarithms of concentrations for each individual. The unit for the concentrations is $\\textrm{mg/dL}$."}
+# Plotting a boxplot for each person
+ggplot(df.bilirubin, aes(x = pers, y = log(meas))) + geom_boxplot() + ggtitle("Boxplot of logarithm of concentration") + ylab("log(measurement)") + xlab("Person")
+```
+
+From Figure \ref{fig:boxplot} we observe that the measurements for person 3 differ quite drastically from the two other persons, while the measurements for person 1 and person 2 have approximately equal median. The measurements for person 1 does, however, appear to vary more than the measurements for person 1.
+
+Next we fit the linear regression model
+
+\begin{equation} \label{eq:model_B1}
+\ln(Y_{i,j}) = \beta_i + \epsilon_{i,j}, \qquad \textrm{with } i = 1,2,3 \textrm{ and } j = 1, \dots, n_i
+\end{equation}
+
+where $n_1 = 11$, $n_2 = 10$ and $n_3 = 8$ and $\epsilon_{i,j} \sim \mathcal{N}(0, \sigma^2)$. 
+
+```{r}
+model.bilirubin <- lm(log(meas)~pers, data=df.bilirubin)
+summary.model.bilurbin = summary.lm(model.bilirubin)
+```
+
+??????????????????????? Must we comment on or display the estimated beta coefficents?
+
+Next we use the F-test to test the hypothesis $\beta_1 = \beta_2 = \beta_3$.
+
+\begin{align*}
+&\textrm{H$_0$: } \beta_1 = \beta_2 = \beta_3 \\
+&\textrm{H$_1$: At least one $\beta_i$ is different from the other $\beta_i$s}
+\end{align*}
+
+We use significance level $\alpha = 0.05$ for the hypothesis test.
+
+```{r}
+Fval = summary.model.bilurbin$fstatistic
+p.value = pf(Fval[names(Fval) == "value"], Fval[names(Fval) == "numdf"], Fval[names(Fval) == "dendf"],
+             lower.tail = FALSE)
+```
+
+The F-statistic is $`r round(Fval[names(Fval) == "value"], 3)`$ with $(`r Fval[names(Fval) == "numdf"]`, `r Fval[names(Fval) == "dendf"]`)$ degrees of freedom. The corresponding p-value is $`r round(p.value,4)`$. As this p-value is lower than our chosen significance level $\alpha = 0.05$ we reject the null hypothesis and conclude that at least one $\beta_i$ is different from the other.
+
+## 2)
+
+Next we write a function \textbf{permTest} which generates a permutation of the data between the three individuals, consequently fits the model given in (\ref{eq:model_B1}) and finally returns the value of the F-statistic for testing $\beta_1 = \beta_2 = \beta_3$.
+
+```{r}
+# Function that performs one iteration of the Permutation test
+permTest = function(df) {
+  # permute the data
+  n = nrow(df)
+  obs.shuffled = sample(1:n, n, replace = FALSE)
+  df.shuffled = data.frame(meas = df$meas[obs.shuffled], pers =df$pers)
+  # fit the model on the shuffled data
+  model.shuffled <- lm(log(meas)~pers, data=df.shuffled)
+  # calculate the F-statistic and return it
+  fstatistic = summary.lm(model.shuffled)$fstatistic[1]
+  return(fstatistic)
+}
+```
+
+## 3)
+
+In this task we perform a permutation test using the function \textbf{permTest} to generate a sample of size 999 for the F-statistic.
+
+```{r, fig.width = 6}
+# Function for performing permutation test
+permutation.test = function(df, Fval, B = 999, plot.hist = TRUE) {
+  "
+  Input:
+  - df: data frame for which the permutation test should be performed
+  - Fval: F-statistic calculated for the model fitted to the original dataset
+  - B: number of generated bootstrap samples
+  - plot.hist: Boolean determining whether a histogram of the estimated density function
+  of the F-statistic under the null hypothesis should be plotted
+  Output:
+  - A list containing
+    -- p.value: The estimated p-value for the permuation test
+    -- fstatistic.vec
+  "
+  # Initialize vector for storing F-statistics
+  fstatistic.vec = rep(NA, B)
+  # Calculcate F-statistics from permutated datasets
+  for (i in 1:B) fstatistic.vec[i] = permTest(df)
+  # if hist == TRUE plot a histogram for the estimated density function of the F-statistic
+  if (plot.hist) {
+    fig.hist = ggplot(data.frame(fstatistic = fstatistic.vec), aes(x = fstatistic, y = ..density..)) +
+      
+      geom_histogram(bins = 50) + xlab("F-statistic") + ylab("Density") +
+      
+      ggtitle("Histogram of the F-statistic under the null hypothesis") +
+      
+      geom_vline(aes(xintercept=Fval, col = "F-statistic calculated from original dataset"), data = data.frame(Fval = Fval[1]), linetype = "dashed") + theme(legend.position = "bottom") +
+      
+      guides(col = guide_legend("Vertical line"))
+      
+      
+    print(fig.hist)
+  }
+  # Calculate the p-value from the permutation test using the histogram as
+  # an approximation for the distribution of the F-statistic
+  p.value = sum(fstatistic.vec >= Fval) / B
+  # Return the p-value and the simulated F-statistics under the null hypothesis
+  return(list(p.value = p.value, fstatistic.vec = fstatistic.vec))
+}
+```
+
+
+```{r, fig.width = 6, fig.cap="\\label{fig:histogram} Histogram of estimated F-statistics during the Permutation test. The histogram approximates the density function of the F-statistic under the null hypothesis. The vertical, red, dashed line is the original F-statistic value. "}
+set.seed(1)
+p.value.permutation.test = permutation.test(df.bilirubin, Fval, B = 999)$p.value
+```
+
+In Figure \ref{fig:histogram} we plot a histogram of the F-statistics computed during the Permutation test, which is an approximation for the density function of the F-statistic under the null hypothesis. From the plot it appears that the F-statistic computed from the original data is a part of the upper tail of the distribution function for the F-statistic under the null hypothesis.
+
+The permutation test gives a p-value of $`r round(p.value.permutation.test,4)`$ for the hypothesis test. We observe that this value is a bit larger than the p-value we computed in Task C1 which was $`r round(p.value,4)`$. The p-value from the permutation test is larger than our chosen significance level $\alpha = 0.05$ and hence we do not reject the null hypothesis.
 
 
 
@@ -242,7 +353,7 @@ u_i &= I(x_i \geq y_i) \qquad \textrm{for } i = 1, \dots, n
 \end{align*}
 
 
-where $I(A) = 1$ if $A$ is true and $0$ otherwise. $Thus for each $i = 1, \dots, n$ we observe the largest value of $x_i$ and $y_i$ and we know whether the observed value is $x_i$ or $y_i$. Based on the observed $(z_i, u_i) \qquad \textrm{for } i = 1, \dots, n $ we will in this problem use the EM algorithm to find the maximum likelihood estimates for $(\lambda_0, \lambda_1)$.
+where $I(A) = 1$ if $A$ is true and $0$ otherwise. Thus for each $i = 1, \dots, n$ we observe the largest value of $x_i$ and $y_i$ and we know whether the observed value is $x_i$ or $y_i$. Based on the observed $(z_i, u_i), \; i = 1, \dots, n$, we will in this problem use the EM algorithm to find the maximum likelihood estimates for $(\lambda_0, \lambda_1)$.
 
 
 ## a)
