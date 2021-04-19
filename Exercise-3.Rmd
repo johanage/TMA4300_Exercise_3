@@ -244,7 +244,7 @@ To begin we fit a boxplot of the logarithms of concentrations for each individua
 ggplot(df.bilirubin, aes(x = pers, y = log(meas))) + geom_boxplot() + ggtitle("Boxplot of logarithm of concentration") + ylab("log(measurement)") + xlab("Person")
 ```
 
-From Figure \ref{fig:boxplot} we observe that the measurements for person 3 differ quite drastically from the two other persons, while the measurements for person 1 and person 2 have approximately equal median. The measurements for person 1 does, however, appear to vary more than the measurements for person 1.
+From Figure \ref{fig:boxplot} we observe that the measurements for person 3 differ quite drastically from the two other persons, while the measurements for person 1 and person 2 have approximately equal median. The measurements for person 1 does, however, appear to vary more than the measurements for person 2.
 
 Next we fit the linear regression model
 
