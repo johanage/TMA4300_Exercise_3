@@ -1,21 +1,22 @@
 ---
 title: "Excercise 3"
-subtitle: "TMA4300 Computer intensive statistical methods Spring 2021"
-author: 
-- "Johan Fredrik Agerup"
-- "Arne Rustad"
+author:
+- Johan Fredrik Agerup
+- Arne Rustad
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: pdf_document
+output:
+  bookdown::pdf_document2: default
+subtitle: TMA4300 Computer intensive statistical methods Spring 2021
 header-includes:
-   - \usepackage{subfig}
-   - \usepackage[ruled,vlined]{algorithm2e}
-   - \SetKw{KwBy}{by}
-   - \SetKwProg{Init}{init}{}{}
-   - \SetKw{length}{length}
-   - \SetKw{KwMean}{mean}
-   - \SetKw{KwSum}{sum}
-   - \SetKw{KwSd}{sd}
-   - \SetKw{KwCorr}{corr}
+- \usepackage{subfig}
+- \usepackage[ruled,vlined]{algorithm2e}
+- \SetKw{KwBy}{by}
+- \SetKwProg{Init}{init}{}{}
+- \SetKw{length}{length}
+- \SetKw{KwMean}{mean}
+- \SetKw{KwSum}{sum}
+- \SetKw{KwSd}{sd}
+- \SetKw{KwCorr}{corr}
 ---
 
 \newcommand{\vect}[1]{\ensuremath{\boldsymbol{\mathbf{#1} }}}
@@ -219,7 +220,7 @@ residual_bootstrap_resampling = function(x, p, B){
     #sampling by initializing the consecutive pair
     x_LA = ARp.filter(x0 = x_pair, 
                          beta = beta_vec_OG$LA, 
-                         e = sample(eps_LA, size=length(eps_LA)+1, replace=TRUE))
+                         e = sample(eps_LA, size=length(eps_LA), replace=TRUE))
     samples_LA = c(samples_LA, x_LA)
     #calculate minimisers based upon bootstrap/resampling and adding to list of betas
     beta_vec_star = ARp.beta.est(x = x_LA, p = p)
@@ -354,7 +355,11 @@ To begin we fit a boxplot of the logarithms of concentrations for each individua
 
 ```{r, fig.width = 6, fig.cap="\\label{fig:boxplot} Boxplot for the logarithms of concentrations for each individual. The unit for the concentrations is $\\textrm{mg/dL}$."}
 # Plotting a boxplot for each person
-ggplot(df.bilirubin, aes(x = pers, y = log(meas))) + geom_boxplot() + ggtitle("Boxplot of logarithm of concentration") + ylab("log(measurement)") + xlab("Person")
+ggplot(df.bilirubin, aes(x = pers, y = log(meas))) + 
+  geom_boxplot() + 
+  ggtitle("Boxplot of logarithm of concentration") + 
+  ylab("log(measurement)") + 
+  xlab("Person")
 ```
 
 From Figure \ref{fig:boxplot} we observe that the measurements for person 3 differ quite drastically from the two other persons, while the measurements for person 1 and person 2 have approximately equal median. The measurements for person 1 does, however, appear to vary more than the measurements for person 2.
