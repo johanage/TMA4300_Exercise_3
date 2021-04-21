@@ -158,15 +158,15 @@ where:
 
 4. Calculate bias for LS:
 \begin{equation}
-\mathrm{bias}(\hat{\beta}_{LS}) =  \hat{\beta}_{LS} - \hat{\beta}_{LS}^{*}(\cdot),
+\mathrm{bias}(\hat{\beta}_{LS}) =  \hat{\beta}_{LS}^{*}(\cdot) - t(\hat{F}),
 \end{equation}
 where $\hat{\beta}_{LS}^{*}(\cdot)$ represents the bootstrap mean of the beta estimator.
 
 5. Calculate bias for LA:
 \begin{equation}
-\mathrm{bias}(\hat{\beta}_{LA}) =  \hat{\beta}_{LA} - \hat{\beta}_{LA}^{*}(\cdot),
+\mathrm{bias}(\hat{\beta}_{LA}) =  \hat{\beta}_{LA}^{*}(\cdot) - t(\hat{F}),
 \end{equation}
-where $\hat{\beta}_{LA}^{*}(\cdot)$ represents the bootstrap mean of the beta estimator.
+where $\hat{\beta}_{LA}^{*}(\cdot)$ represents the bootstrap mean of the beta estimator and $t(\hat{F})$ is the calculated betas from the original data.
 
 ```{r}
 # bootstrap resampling algo
@@ -177,9 +177,15 @@ residual_bootstrap_resampling = function(x, p, B){
   beta_est_LA = c()
   e_est_LS = c()
   e_est_LA = c()
+  #calculating the minimisers for the original data
   beta_vec_OG = ARp.beta.est(x = x, p = p)
+  #calculating the recentered residuals
   eps_LS = ARp.resid(x = x, beta = beta_vec_OG$LS)
   eps_LA = ARp.resid(x = x, beta = beta_vec_OG$LA)
+  
+  #initializing the x101 vectors
+  x101_ls = c()
+  x101_la = c()
   for(i in 1:B){
     " Done equally for both methods LS, LA
     Algo:
@@ -206,10 +212,14 @@ residual_bootstrap_resampling = function(x, p, B){
     # using bootstrap sample to calc residuals with estimated betas
     e_est_LS = c(e_est_LS, ARp.resid(x = x_LS, beta = beta_vec_star$LS))
     
+    #creating the x101 sample by sampling from the residuals and using the estimated betas
+    e_101_LS = sample(e_est_LS, size = 1, replace = TRUE)
+    x101_ls = c(x101_ls, beta_vec_star$LS[2]*x[length(x)] + beta_vec_star$LS[1]*x[length(x)-1] + e_101_LS)
+    
     #sampling by initializing the consecutive pair
     x_LA = ARp.filter(x0 = x_pair, 
                          beta = beta_vec_OG$LA, 
-                         e = sample(eps_LA, size=length(eps_LA), replace=TRUE))
+                         e = sample(eps_LA, size=length(eps_LA)+1, replace=TRUE))
     samples_LA = c(samples_LA, x_LA)
     #calculate minimisers based upon bootstrap/resampling and adding to list of betas
     beta_vec_star = ARp.beta.est(x = x_LA, p = p)
@@ -218,19 +228,26 @@ residual_bootstrap_resampling = function(x, p, B){
     #calculate the residual of the iteration for task 2.
     # using bootstrap sample to calc residuals with estimated betas
     e_est_LA = c(e_est_LA, ARp.resid(x = x_LA, beta = beta_vec_star$LA))
+    
+    #creating the x101 sample by sampling from the residuals and using the estimated betas
+    e_101_LA = sample(e_est_LA, size = 1, replace = TRUE)
+    x101_la = c(x101_la, beta_vec_star$LA[2]*x[length(x)] + beta_vec_star$LA[1]*x[length(x)-1] + e_101_LA)
+    
   }
   #calculate the estimates of the variance of the estimators
   hat_SE_B_LS = sum((beta_est_LS - mean(beta_est_LS))^2)/(B -1)
   hat_SE_B_LA = sum((beta_est_LA - mean(beta_est_LA))^2)/(B -1)
   return(list(LS = samples_LS, LA = samples_LA,
-                       betas_LS_est = beta_est_LS,
-                       betas_LA_est = beta_est_LA,
-                       est_sd_beta_LS = hat_SE_B_LS,
-                       est_sd_beta_LA = hat_SE_B_LA,
-                       bias_beta_LS = hat_SE_B_LS - mean(beta_est_LS),
-                       bias_beta_LA = hat_SE_B_LA - mean(beta_est_LA),
-                       resiudals_LS = e_est_LS,
-                       resiudals_LA = e_est_LA))
+              betas_LS_est = beta_est_LS,
+              betas_LA_est = beta_est_LA,
+              est_sd_beta_LS = hat_SE_B_LS,
+              est_sd_beta_LA = hat_SE_B_LA,
+              bias_beta_LS = mean(beta_est_LS) - beta_vec_OG$LS,
+              bias_beta_LA = mean(beta_est_LA) - beta_vec_OG$LA,
+              resiudals_LS = e_est_LS,
+              resiudals_LA = e_est_LA, 
+              x101_LS = x101_ls, 
+              x101_LA = x101_la))
 }
 
 #estimating  the variance and bias of the two estimators
@@ -256,10 +273,10 @@ Questions:
 
 To be able to compute the confidence interval for $x_{101}$ we have to use the results from 1. To simulate the value of $x_{101}$ we need to estimate the residual distribution corresponding to the bootstrapped time series and parameter estimates. The strategy we will follow for this problem is:
 
-1. Generate residual distribution for LS and LA by sampling from the computed residuals from time series data.
-2. Sample from the residual distribution to simulate a value $x_{101}$ by using the AR(2) scheme.
+1. Compute residual distribution for LS and LA by sampling from the time series data.
+2. Sample from the residual distribution to simulate a value $x_{101}$ by using the AR(2) scheme using last 2 values of original data $x_{99}$ and $x_{100}$.
 3. The variability of the value $x_{101}$ should reflect our lack of knowledge of the parameter values and about the residuals, so the variance should be larger for the distribution of $x_{101}$'s than for the parameter values and residuals. (?)
-4. Find the limits in the prediction interval for $x_{101}$ as quantiles in the simulated $x_{101}$ values.
+4. Find the limits in the prediction interval for $x_{101}$ as quantiles in the simulated $x_{101}$ values by using the stats::quantile()-function using probs = c(0.025, 0.975).
 
 ```{r hist_sampled_res_LS, fig.cap="Histograms of the sampled residuals for LS."}
 df_PA2 = data.frame(res_LS = boot1$resiudals_LS, res_LA = boot1$resiudals_LA)
@@ -271,44 +288,51 @@ ggplot(data = df_PA2) + geom_histogram(aes(x = res_LA))
 
 The histograms of the sampled residuals are plotted in Fig. \@ref(fig:hist_sampled_res_LS) and \@ref(fig:hist_sampled_res_LA).
 
-```{r}
+```{r plot_x101_LS, fig.cap="Plot of the $x_{101}$'s simulated by LS."}
+#computing prediction interval for LS
+q_x101_LS = stats::quantile(x = boot1$x101_LS, probs = c(0.025, 0.975))
 
-calc_x101 = function(res_LS, res_LA, x_LA, x_LS, beta_LS, beta_LA, B, Timesteps){
-  x101_ls = c()
-  x101_la = c()
-  for(i in 1:B){
-    e_101_LS = sample(res_LS, size = 1, replace = TRUE)
-    e_101_LA = sample(res_LA, size = 1, replace = TRUE)
-    xls = x_LS[i:Timesteps*i]
-    xla = x_LS[i:Timesteps*i]
-    bls = beta_LS[i:(i+1)]
-    bla = beta_LA[i:(i+1)]
-    x101_ls = c(x101_ls, bls[2]*xls[Timesteps] + bls[1]*xls[Timesteps-1] + e_101_LS)
-    x101_la = c(x101_la, bls[2]*xla[Timesteps] + bla[1]*xla[Timesteps-1] + e_101_LA)
-  }
-  return(list(x101_LS = x101_ls,
-              x101_LA = x101_ls))
+#computing prediction interval for LS
+q_x101_LA = stats::quantile(x = boot1$x101_LA, probs = c(0.025, 0.975))
+
+df_x101 = data.frame(ls = boot1$x101_LS, la = boot1$x101_LA, q_LS = q_x101_LS, q_LA = q_x101_LA)
+
+print(df_x101$q_LS[1:2])
+print(paste0("The 95% prediction interval for LS is ", q_x101_LS[1], " to ", q_x101_LS[2]))
+
+ggplot(data = df_x101) + geom_histogram(aes(x = ls)) + 
+  geom_vline(xintercept = df_x101$q_LS[1], show.legend = TRUE) + 
+  geom_vline(xintercept = df_x101$q_LS[2], show.legend = TRUE ) +
+  guides(color = q_x101_LS)
+```
+
+
+```{r plot_x101_LA, fig.cap="Plot of the $x_{101}$'s simulated by LA"}
+print(paste0("The 95% prediction interval for LA is ", q_x101_LA[1], " to ", q_x101_LA[2]))
+ggplot(data = df_x101) + geom_histogram(aes(x = la)) + 
+  geom_vline(xintercept = df_x101$q_LA[1], show.legend = TRUE ) + 
+  geom_vline(xintercept = df_x101$q_LA[2], show.legend = TRUE )
+```
+
+After calculating the $95\%$ prediction interval of the values of $x_{101}$ we can compare with the empricial distribution function defined:
+\begin{equation}
+\hat{F} = \sum_{i=1}^{n}\frac{1}{n}1(x_i \leq x)
+\end{equation}
+
+where $1(\cdot)$ is the indicator function. This is implemented in the code below:
+
+```{r}
+emp_CDF = function(x){
+  n = length(x)
+  x_sorted = sort(x)
+  F_hat = seq(0,n, length.out = n)/n
+  return(list(x = x_sorted, cdf = F_hat))
 }
 
-x101s = calc_x101(res_LS = boot1$resiudals_LS, 
-                     res_LA = boot1$resiudals_LA, 
-                     x_LA = boot1$LA, 
-                     x_LS = boot1$LS,
-                     beta_LS = boot1$betas_LS_est, 
-                     beta_LA = boot1$betas_LA_est, 
-                     B = 2000, Timesteps = 100)
+f1 = emp_CDF(data3A$x)
+plot(f1$x, f1$cdf)
 
 ```
-
-
-```{r plot_x101_LS, fig.cap="Plot of the $x_{101}$'s simulated by LS."}
-df_x101 = data.frame(ls = x101s$x101_LS, la = x101s$x101_LA )
-ggplot(data = df_x101) + geom_histogram(aes(x = ls))
-```
-```{r plot_x101_LA, fig.cap="Plot of the $x_{101}$'s simulated by LA"}
-ggplot(data = df_x101) + geom_histogram(aes(x = la))
-```
-
 
 
 # Problem B Permutation Test
