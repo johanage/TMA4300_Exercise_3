@@ -54,24 +54,29 @@ library(tidyverse)
 
 ## Comparing AR(2) parameter estimators using resampling of residuals
 
-```{r, fig.height=3, fig.width=4}
+In this problem we are going to analyze the non-Gaussian time-series data in `data3A\$x`. The data contains a subsequence of length $T = 100$. The target is to compare two different estimators. A plot of the data is given in Fig. \@ref(fig:plot_OG).
+
+```{r plot_OG, fig.height=3, fig.width=4, fig.cap="Plot of the non-Gaussian time series."}
 source("probAdata.R")
-plot(data3A$x)
+df_OG_data = data.frame(t = seq(1, 100), Value = data3A$x)
+ggplot(data = df_OG_data, aes(x = t, y = Value)) + geom_point()
 ```
+
 We consider an AR(2) model which is specified by the relation:
 
 \begin{equation}\label{AR2}
-x_t = \beta_1 x_{t-1} + \beta_2 x_{t-2} + e_t
+x_t = \beta_1 x_{t-1} + \beta_2 x_{t-2} + e_t,
 \end{equation}
 
-The least sum of squared residuals (LS) and least sum of absolute residuals (LA) are obtained by minimising the following loss functions with respect to $\mathbf{\beta}$:
+where $e_t$ are iid with zero mean and constant variance. Deriving the two estimators for the residuals we want to compare, we are going to use the the least sum of squared residuals (LS) and least sum of absolute residuals (LA). The minimisers are obtained by minimising the following loss functions with respect to $\mathbf{\beta}$:
 
 \begin{align}
-Q_{LS} (\mathbf{x}) = \sum_{t=3}^{T} ( x_t - \beta_1 x_{t-1} - \beta_2 x_{t-2} )^2
+Q_{LS} (\mathbf{x}) = \sum_{t=3}^{T} ( x_t - \beta_1 x_{t-1} - \beta_2 x_{t-2} )^2\\
 Q_{LA} (\mathbf{x}) = \sum_{t=3}^{T} |x_t - \beta_1 x_{t-1} - \beta_2 x_{t-2}|
 \end{align}
 
-Denote the minimisers by $\mathbf{\beta}_{LS}$ and $\mathbf{\beta}_{LA}$ (calculated by ARp.beta.est), and define the estimated residuals to be :
+We denote the minimisers by $\mathbf{\beta}_{LS}$ and $\mathbf{\beta}_{LA}$ (calculated by the script ARp.beta.est). We then define the estimated residuals to be:
+
 \begin{equation}\label{estimated_residuals}
 \hat{e}_t = x_t -\hat{\beta}_1x_{t-1} -\hat{\beta}_2 x_{t-2}
 \end{equation}
@@ -82,6 +87,15 @@ to have mean zero by defining $\hat{\epsilon}_t = \hat{e}_t -\bar{e}$. (Results 
 ## A.1
 
 ### 1.1 Use the residual resampling bootstrap method to evaluate the relative performance of the two parameter estimators.
+
+In order to do the resampling we have to pick random consecutive pairs from the original data. In this case where $\mathbf{x} = \{x_1, \dots, x_{100} \}$ we pick such that all possible pairs is given by:
+
+\begin{equation}\label{all_possible_consecutive_pairs}
+\begin{\pmatrix}
+x_1 & x_2 & x_3 & \dots & x_{99}\\
+x_2 & x_3 & x_4 & \dots & x_{100}
+\end{\pmatrix}
+\end{equation}
 
 ```{r}
 source("probAhelp.R", local = knitr::knit_global())
@@ -98,10 +112,12 @@ eps_residuals_LA = ARp.resid(x = data3A$x, beta = minisers_ar2$LA)
 sample_consecutive = function(x){
   #set seed for reproducability
   #set.seed(2021)
-  x_reshaped = matrix(unlist(t(x)), byrow=T, 50, 2)
-  idx = sample(seq(1,50), size = 1, replace = FALSE)
-  x_sample_pair = x_reshaped[idx,]
-  return(x_sample_pair)
+  idx = sample(seq(1,length(x)-1), size = 1, replace = FALSE)
+  return(x[idx:(idx+1)])
+  # x_reshaped = matrix(unlist(t(x)), byrow=T, 2*length(x)-2, 2)
+  # print(x_reshaped)
+  # x_sample_pair = x_reshaped[idx,]
+  # return(x_sample_pair)
 }
 
 x1x2_sample1 = sample_consecutive(x = data3A$x)
@@ -129,13 +145,26 @@ The two parameters of interest are $\mathbf{\beta}$ and the estimators for the m
 1. Generate $B$ bootstrap samples $x^{1*}, \dots, x^{B*}$.
 2. Evaluate the corresponding parameter estimates: $\hat{\beta}^{*}(b) = s(x^{b*}), b = 1,2, \dots, B$.
 3. Estimate the variance by:
+
 \begin{equation}
-\hat{\mathrm{Var}}_B = \frac{ \sum_{b=1}^B \left( \hat{\beta}^{*}(b) - \hat{\beta}^{*}(\cdot) \right)^2 }{B-1}.
+\hat{\mathrm{Var}}_B = \frac{ \sum_{b=1}^B \left( \hat{\beta}^{*}(b) - \hat{\beta}^{*}(\cdot) \right)^2 }{B-1},
 \end{equation}
 where:
 \begin{equation}
 \hat{\beta}^{*}(\cdot) \equiv \frac{1}{B}\sum_{b=1}^B \hat{\beta}^{*}(b)
 \end{equation}
+
+4. Calculate bias for LS:
+\begin{equation}
+\mathrm{bias}(\hat{\beta}_{LS}) =  \hat{\beta}_{LS} - \hat{\beta}_{LS}^{*}(\cdot),
+\end{equation}
+where $\hat{\beta}_{LS}^{*}(\cdot)$ represents the bootstrap mean of the beta estimator.
+
+5. Calculate bias for LA:
+\begin{equation}
+\mathrm{bias}(\hat{\beta}_{LA}) =  \hat{\beta}_{LA} - \hat{\beta}_{LA}^{*}(\cdot),
+\end{equation}
+where $\hat{\beta}_{LA}^{*}(\cdot)$ represents the bootstrap mean of the beta estimator.
 
 ```{r}
 
@@ -163,11 +192,10 @@ residual_bootstrap_resampling = function(x, p, B){
     " Done equally for both methods LS, LA
     Algo:
     1. Sample pair x1 and x2 from the given data
-    2. Use help function ARp.beta.est to calculate the betas
-    3. Use help function ARp.resid to calc residuals
-    4. Use help function ARp.filter to resample w/ replacement
-    5. Add sd for current sample to list of sds
-    6. Calc the estimator for the SD
+    2 Use help function ARp.filter to:
+    2.1 Resample residuals w/replacement from original data
+    2.2 Generate bootstrap with initialized values x_pair
+    3. Use help function ARp.beta.est to calculate the betas for bootstrap sample
     "
     #sample pair from original time series data
     x_pair = sample_consecutive(x = x)
@@ -220,7 +248,9 @@ The LS estimator is optimal for Gaussian AR(p) processes.
 
 ### Explain if it is also optimal for this problem.
 
-
+Questions:
+1. Could we use a diagnostic to decide wheter the LS estimator is optimal for this problem or not?
+2. For the new estimation of the beta estimators, will they be reweighted in some sense since they are calculated from the bootstrap sample?
 
 # Problem B Permutation Test
 
