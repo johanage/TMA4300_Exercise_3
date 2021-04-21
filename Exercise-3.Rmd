@@ -91,10 +91,10 @@ to have mean zero by defining $\hat{\epsilon}_t = \hat{e}_t -\bar{e}$. (Results 
 In order to do the resampling we have to pick random consecutive pairs from the original data. In this case where $\mathbf{x} = \{x_1, \dots, x_{100} \}$ we pick such that all possible pairs is given by:
 
 \begin{equation}\label{all_possible_consecutive_pairs}
-\begin{\pmatrix}
+\begin{pmatrix}
 x_1 & x_2 & x_3 & \dots & x_{99}\\
 x_2 & x_3 & x_4 & \dots & x_{100}
-\end{\pmatrix}
+\end{pmatrix}
 \end{equation}
 
 ```{r}
@@ -128,14 +128,16 @@ To do a resampling, initialise values for $x_1$ and $x_2$ by picking a random co
 calc_x_LS = ARp.filter(x0 = x1x2_sample1, 
                        beta = minisers_ar2$LS, 
                        e = sample(eps_residuals_LS, size=length(eps_residuals_LS), replace=TRUE))
-plot(calc_x_LS)
+df_samples_LS = data.frame(t = seq(1,100), Value = calc_x_LS)
+ggplot(data = df_samples_LS) + geom_point(aes(x = t, y = Value))
 ```
 
 ```{r, fig.height=3, fig.width=4}
 calc_x_LA = ARp.filter(x0 = x1x2_sample1, 
                        beta = minisers_ar2$LA, 
                        e = sample(eps_residuals_LA, size=length(eps_residuals_LA), replace=TRUE))
-plot(calc_x_LA)
+df_samples_LA = data.frame(t = seq(1,100), Value = calc_x_LA)
+ggplot(data = df_samples_LA) + geom_point(aes(x = t, y = Value))
 ```
 
 ### 1.2 Specifically, estimate the variance and bias of the two estimators.
@@ -167,24 +169,14 @@ where $\hat{\beta}_{LS}^{*}(\cdot)$ represents the bootstrap mean of the beta es
 where $\hat{\beta}_{LA}^{*}(\cdot)$ represents the bootstrap mean of the beta estimator.
 
 ```{r}
-
-"
-Agenda:
-- implement theta_hat*(b) which is the empirical variance of the bootstrapsample for every t
-  - and for b = 1,2,...,B
-- Estimate the empirical SD(theta_hat*) by the formula for SE_B^
-- compute theta_hat*(dot)
-- estimate the variance and the bias of the estimators, but what is the estimators here?
-  - is it beta1 and beta2
-  - is it epsilon_LA and epsilon_LS, aka the residuals of the two lossfunction definitions
-"
-
-# bootstrap resampling
+# bootstrap resampling algo
 residual_bootstrap_resampling = function(x, p, B){
   samples_LS = c()
   samples_LA = c()
   beta_est_LS = c()
   beta_est_LA = c()
+  e_est_LS = c()
+  e_est_LA = c()
   beta_vec_OG = ARp.beta.est(x = x, p = p)
   eps_LS = ARp.resid(x = x, beta = beta_vec_OG$LS)
   eps_LA = ARp.resid(x = x, beta = beta_vec_OG$LA)
@@ -200,57 +192,124 @@ residual_bootstrap_resampling = function(x, p, B){
     #sample pair from original time series data
     x_pair = sample_consecutive(x = x)
     
-    # generate beta ector for LS and LA
-    # using minimiserts from the bootstrapped data
-    "Questions:
-    - use same betas for every bootstrap or use the bootstrap data to minimize loss functions?"
-    
+    #sampling by initializing the consecutive pair
     x_LS = ARp.filter(x0 = x_pair, 
                          beta = beta_vec_OG$LS, 
                          e = sample(eps_LS, size=length(eps_LS), replace=TRUE))
+    #calculate minimisers based upon bootstrap/resampling and adding to list of betas
     beta_vec_star = ARp.beta.est(x = x_LS, p = p)
     beta_est_LS = c(beta_est_LS, beta_vec_star$LS)
     # print(sqrt(var(x_LS)))
     samples_LS = c(samples_LS, x_LS)
     
+    #calculate the residual of the iteration for task 2.
+    # using bootstrap sample to calc residuals with estimated betas
+    e_est_LS = c(e_est_LS, ARp.resid(x = x_LS, beta = beta_vec_star$LS))
     
-    
+    #sampling by initializing the consecutive pair
     x_LA = ARp.filter(x0 = x_pair, 
                          beta = beta_vec_OG$LA, 
                          e = sample(eps_LA, size=length(eps_LA), replace=TRUE))
     samples_LA = c(samples_LA, x_LA)
+    #calculate minimisers based upon bootstrap/resampling and adding to list of betas
     beta_vec_star = ARp.beta.est(x = x_LA, p = p)
     beta_est_LA = c(beta_est_LA, beta_vec_star$LA)
+    
+    #calculate the residual of the iteration for task 2.
+    # using bootstrap sample to calc residuals with estimated betas
+    e_est_LA = c(e_est_LA, ARp.resid(x = x_LA, beta = beta_vec_star$LA))
   }
+  #calculate the estimates of the variance of the estimators
   hat_SE_B_LS = sum((beta_est_LS - mean(beta_est_LS))^2)/(B -1)
   hat_SE_B_LA = sum((beta_est_LA - mean(beta_est_LA))^2)/(B -1)
-  df_boot = data.frame(LS = samples_LS, LA = samples_LA, 
+  return(list(LS = samples_LS, LA = samples_LA,
+                       betas_LS_est = beta_est_LS,
+                       betas_LA_est = beta_est_LA,
                        est_sd_beta_LS = hat_SE_B_LS,
                        est_sd_beta_LA = hat_SE_B_LA,
                        bias_beta_LS = hat_SE_B_LS - mean(beta_est_LS),
-                       bias_beta_LA = hat_SE_B_LA - mean(beta_est_LA))  
-  return(df_boot)
+                       bias_beta_LA = hat_SE_B_LA - mean(beta_est_LA),
+                       resiudals_LS = e_est_LS,
+                       resiudals_LA = e_est_LA))
 }
 
 #estimating  the variance and bias of the two estimators
 boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 2000)
 print(paste0("Variance of the betas: LS = ", boot1$est_sd_beta_LS[1]," and LA = ", boot1$est_sd_beta_LA[1]))
 
-#computing bias:
 print("Bias of the two estimators:")
 print(boot1$bias_beta_LS[1])
 print(boot1$bias_beta_LA[1])
-
 ```
 
 
 The LS estimator is optimal for Gaussian AR(p) processes. 
 
-### Explain if it is also optimal for this problem.
+### Explaination if the LS estimator is also optimal for this problem.
 
 Questions:
 1. Could we use a diagnostic to decide wheter the LS estimator is optimal for this problem or not?
-2. For the new estimation of the beta estimators, will they be reweighted in some sense since they are calculated from the bootstrap sample?
+2. For the new estimation of the beta estimators, will they be reweighted in some sense since they are calculated from the bootstrap sample that is already based upon the LS estimator, but without the sampled residuals?
+
+
+### 2. Computation of a $95 \%$ confidence interval for $x_{101}$ based upon both estimators.
+
+To be able to compute the confidence interval for $x_{101}$ we have to use the results from 1. To simulate the value of $x_{101}$ we need to estimate the residual distribution corresponding to the bootstrapped time series and parameter estimates. The strategy we will follow for this problem is:
+
+1. Generate residual distribution for LS and LA by sampling from the computed residuals from time series data.
+2. Sample from the residual distribution to simulate a value $x_{101}$ by using the AR(2) scheme.
+3. The variability of the value $x_{101}$ should reflect our lack of knowledge of the parameter values and about the residuals, so the variance should be larger for the distribution of $x_{101}$'s than for the parameter values and residuals. (?)
+4. Find the limits in the prediction interval for $x_{101}$ as quantiles in the simulated $x_{101}$ values.
+
+```{r hist_sampled_res_LS, fig.cap="Histograms of the sampled residuals for LS."}
+df_PA2 = data.frame(res_LS = boot1$resiudals_LS, res_LA = boot1$resiudals_LA)
+ggplot(data = df_PA2) + geom_histogram(aes(x = res_LS))
+```
+```{r hist_sampled_res_LA, fig.cap="Histograms of the sampled residuals for LA."}
+ggplot(data = df_PA2) + geom_histogram(aes(x = res_LA))
+```
+
+The histograms of the sampled residuals are plotted in Fig. \@ref(fig:hist_sampled_res_LS) and \@ref(fig:hist_sampled_res_LA).
+
+```{r}
+
+calc_x101 = function(res_LS, res_LA, x_LA, x_LS, beta_LS, beta_LA, B, Timesteps){
+  x101_ls = c()
+  x101_la = c()
+  for(i in 1:B){
+    e_101_LS = sample(res_LS, size = 1, replace = TRUE)
+    e_101_LA = sample(res_LA, size = 1, replace = TRUE)
+    xls = x_LS[i:Timesteps*i]
+    xla = x_LS[i:Timesteps*i]
+    bls = beta_LS[i:(i+1)]
+    bla = beta_LA[i:(i+1)]
+    x101_ls = c(x101_ls, bls[2]*xls[Timesteps] + bls[1]*xls[Timesteps-1] + e_101_LS)
+    x101_la = c(x101_la, bls[2]*xla[Timesteps] + bla[1]*xla[Timesteps-1] + e_101_LA)
+  }
+  return(list(x101_LS = x101_ls,
+              x101_LA = x101_ls))
+}
+
+x101s = calc_x101(res_LS = boot1$resiudals_LS, 
+                     res_LA = boot1$resiudals_LA, 
+                     x_LA = boot1$LA, 
+                     x_LS = boot1$LS,
+                     beta_LS = boot1$betas_LS_est, 
+                     beta_LA = boot1$betas_LA_est, 
+                     B = 2000, Timesteps = 100)
+
+```
+
+
+```{r plot_x101_LS, fig.cap="Plot of the $x_{101}$'s simulated by LS."}
+df_x101 = data.frame(ls = x101s$x101_LS, la = x101s$x101_LA )
+ggplot(data = df_x101) + geom_histogram(aes(x = ls))
+```
+```{r plot_x101_LA, fig.cap="Plot of the $x_{101}$'s simulated by LA"}
+ggplot(data = df_x101) + geom_histogram(aes(x = la))
+```
+
+
 
 # Problem B Permutation Test
 
