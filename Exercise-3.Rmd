@@ -55,7 +55,6 @@ library(tidyverse)
 
 ## Comparing AR(2) parameter estimators using resampling of residuals
 
-<<<<<<< HEAD
 In this problem we are going to analyze the non-Gaussian time-series data in `data3A$x`. The data contains a sequence of length $T = 100$. The target is to compare two different estimators. A plot of the data is given in Figure \ref{fig:plot_OG}.
 
 ```{r plot_OG, fig.height=3, fig.width=4, fig.cap=" \\label{fig:plot_OG} Plot of the non-Gaussian time series."}
@@ -63,9 +62,6 @@ source("probAdata.R")
 df_OG_data = data.frame(t = seq(1, 100), Value = data3A$x)
 ggplot(data = df_OG_data, aes(x = t, y = Value)) + geom_point()
 ```
-
-
-In this problem we are going to analyze the non-Gaussian time-series data in `data3A\$x`. The data contains a subsequence of length $T = 100$. The target is to compare two different estimators. A plot of the data is given in Figure \ref{fig:plot_OG}.
 
 
 To model the time series data we consider an AR(2) model:
@@ -170,6 +166,7 @@ where $\hat{\vect{\beta}}^{*}(\cdot)$ represents the bootstrap mean of the beta 
 
 ```{r}
 # bootstrap resampling algo
+set.seed(2021)
 residual_bootstrap_resampling = function(x, p, B){
   samples_LS = c()
   samples_LA = c()
@@ -260,19 +257,14 @@ print(boot1$bias_beta_LA[1])
 ```
 
 
-The LS estimator is optimal for Gaussian AR(p) processes. 
+The LS estimator is optimal for Gaussian AR(p) processes.
 
 ### Explaination if the LS estimator is also optimal for this problem.
 
-Questions:
+From the calculated variance of the estimators it is not evident which method is better. The LS method has a slightly larger variance than the LA method. The bias is also slightly larger for the LS method than the LA method. However these differences can justs be due to randomness in the bootstrap.
 
-1. Could we use a diagnostic to decide wheter the LS estimator is optimal for this problem or not?
-
-
-2. For the new estimation of the beta estimators, will they be reweighted in some sense since they are calculated from the bootstrap sample that is already based upon the LS estimator, but without the sampled residuals?
-
-
-### 2. Computation of a $95 \%$ confidence interval for $x_{101}$ based upon both estimators.
+## A.2 
+### Computation of a $95 \%$ confidence interval for $x_{101}$ based upon both estimators.
 
 To be able to compute the confidence interval for $x_{101}$ we have to use the results from 1. To simulate the value of $x_{101}$ we need to estimate the residual distribution corresponding to the bootstrapped time series and parameter estimates. The strategy we will follow for this problem is:
 
@@ -288,7 +280,10 @@ q_x101_LS = stats::quantile(x = boot1$x101_LS, probs = c(0.025, 0.975))
 #computing prediction interval for LS
 q_x101_LA = stats::quantile(x = boot1$x101_LA, probs = c(0.025, 0.975))
 
-df_x101 = data.frame(x101_ls = boot1$x101_LS, x101_la = boot1$x101_LA, q_LS = q_x101_LS, q_LA = q_x101_LA)
+df_x101 = data.frame(x101_ls = boot1$x101_LS, 
+                     x101_la = boot1$x101_LA, 
+                     q_LS = q_x101_LS, 
+                     q_LA = q_x101_LA)
 
 print(df_x101$q_LS[1:2])
 print(paste0("The 95% prediction interval for LS is ", q_x101_LS[1], " to ", q_x101_LS[2]))
@@ -300,7 +295,7 @@ ggplot(data = df_x101) + geom_histogram(aes(x = x101_ls)) +
 ```
 
 
-```{r plot_x101_LA, fig.cap="  \\label{plot_x101_LA} Plot of the $x_{101}$'s simulated by LA. The vertical lines represents the $95%$ prediction interval."}
+```{r plot_x101_LA, fig.cap=" \\label{plot_x101_LA} Plot of the $x_{101}$'s simulated by LA. The vertical lines represents the $95%$ prediction interval."}
 print(paste0("The 95% prediction interval for LA is ", q_x101_LA[1], " to ", q_x101_LA[2]))
 ggplot(data = df_x101) + geom_histogram(aes(x = x101_la)) + 
   geom_vline(xintercept = df_x101$q_LA[1], show.legend = TRUE ) + 
@@ -308,12 +303,12 @@ ggplot(data = df_x101) + geom_histogram(aes(x = x101_la)) +
 ```
 
 
-The distribution of the $x_{101}$ samples for both teh LS and the LA method is shown in Figure \ref{fig:plot_x101_LS} and \ref{fig:plot_x101_LA}. 
+The distribution of the $x_{101}$ samples for both teh LS and the LA method is shown in Figure \ref{plot_x101_LS} and \ref{plot_x101_LA}.
 
 
 # Problem B Permutation Test
 
-In this task we look at data that contain measurements of the concentration of bilirubin (mg/dL) in blood samples taken from three young men. Bilirubin is a breakdown product of haemoglobin, which is a principal component of red blood cells. If the liver has suffered degeneration, if the decomposition of haemoglobin is elevated, or if the gall bladder has been  destroyed, large amounts of bilirubin can accumulate in the blood, leading to jaundice. We will use the F-statistic to perform a Permutation test. For testing a null hypothesis $\vect \beta = \vect \beta_0$ the F-statistic is defined
+In this task we look at data that contain measurements of the concentration of bilirubin (mg/dL) in blood samples taken from three young men. Bilirubin is a breakdown product of haemoglobin, which is a principal component of red blood cells. If the liver has suffered degeneration, if the decomposition of haemoglobin is elevated, or if the gall bladder has been  destroyed, large amounts of bilirubin can accumulate in the blood, leading to jaundice. We will use the F-statistic to perform a Permutation test. For testing a hypothesis $\vect \beta = \vect \beta_0$ the F-statistic is defined
 
 \begin{equation*}
 F = \frac{\left( RSS(\beta_0) - RSS(\beta_1)\right) / (p_1 - p_0)}{RSS(\beta_1) / (n - p_1)}
@@ -368,7 +363,9 @@ We use significance level $\alpha = 0.05$ for the hypothesis test.
 
 ```{r}
 Fval = summary.model.bilurbin$fstatistic
-p.value = pf(Fval[names(Fval) == "value"], Fval[names(Fval) == "numdf"], Fval[names(Fval) == "dendf"],
+p.value = pf(Fval[names(Fval) == "value"], 
+             Fval[names(Fval) == "numdf"], 
+             Fval[names(Fval) == "dendf"],
              lower.tail = FALSE)
 ```
 
@@ -441,9 +438,7 @@ permutation.test = function(df, Fval, B = 999, plot.hist = TRUE) {
       
       ggtitle("Histogram of the F-statistic under the null hypothesis") +
       
-      geom_vline(aes(xintercept=Fval, col = "F-statistic calculated from original dataset"),
-                 
-                 data = data.frame(Fval = Fval[1]), linetype = "dashed") +
+      geom_vline(aes(xintercept=Fval, col = "F-statistic calculated from original dataset"), data = data.frame(Fval = Fval[1]), linetype = "dashed") +
       
       theme(legend.position = "bottom") + guides(col = guide_legend("Vertical line"))
       
@@ -477,14 +472,15 @@ coef.null.hypothesis = summary.model.bilurbin.null.hypothesis$coefficients[,1]
 
 Hence we get that 
 \begin{align*}
-\hat \beta_1 = \hat \beta_2 = \hat \beta_3 = `r round(coef.null.hypothesis,3)`.\\
+\hat \beta_1 = \hat \beta_2 = \hat \beta_3 = `r round(coef.null.hypothesis,3)`\\
 \end{align*}
+
 
 
 # Problem C
 
 
-Let $x_1, \dots, x_n$ and $y_1, \dots, y_n$ be independent random variables where the $x_i$'s have an exponential distribution with intensity $\lambda_0$ and the $y_i$'s have an exponential distribution with intensity $\lambda_1$. Assume we do not observe $x_1, \dots, x_n$ and $y_1, \dots, y_n$ directly, but that we observe
+Let $x_1, \dots, x_n$ and $y_1, \dots, y_n$ be independent random variables where the $x_i$'s have an exponential distribution with $\lambda_0$ and the $y_i$'s have an exponential distribution with intensity $\lambda_1$. Assume we do not observe $x_1, \dots, x_n$ and $y_1, \dots, y_n$ directly, but that we observe
 
 \begin{align*}
 z_i &= \max \{x_i, y_i\} \qquad \textrm{for } i = 1, \dots, n \\
@@ -534,14 +530,14 @@ Using this we want to find the expectation of the log likelihood function for th
 \E \left[ l(\lambda_0, \lambda_1 | \vect x, \vect y)  | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}\right]
 &= \E \left[ \ln\left( f_{\vect X, \vect Y}(\vect x, \vect y | \lambda_0, \lambda_1) \right) 
 | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}  \right] \\
-&= n \left( \ln(\lambda_0) + \ln(\lambda_1) \right) -\lambda_0 \sum_{i=1}^n \E \left[x_i | z_i, u_i, \lambda_0^{(t)} \right]  - \lambda_1 \sum_{i=1}^n \E \left[y_i | z_i, u_i, \lambda_1^{(t)} \right]
+&= n \left( \ln(\lambda_0) + \ln(\lambda_1) \right) -\lambda_0 \sum_{i=1}^n \E [x_i | z_i, u_i, \lambda_0^{(t)}]  - \lambda_1 \sum_{i=1}^n \E [y_i | z_i, u_i, \lambda_1^{(t)}
 \end{split}
 \end{equation}
 
 For the case $u_i = 1$ then we have
 
 \begin{align*}
-\E \left[x_i | z_i, u_i = 1, \lambda_0^{(t)} \right] &= u_i
+\E [x_i | z_i, u_i = 1, \lambda_0^{(t)}] &= u_i
 \end{align*}
 
 and
@@ -583,7 +579,7 @@ Correspondlingly, we have for the $u_i = 0$ that
 and
 
 \begin{align*}
-\E \left[y_i | z_i, u_i = 0, \lambda_1^{(t)} \right] &= u_i \\
+\E [y_i | z_i, u_i = 0, \lambda_1^{(t)}] &= u_i \\
 \end{align*}
 
 Inserting this result into Equation (\ref{eq:em_formula_incomplete}) we get
@@ -734,10 +730,9 @@ ggplot(df.em.long, aes(x = iter, y = value, col = initial.value)) + geom_line() 
   scale_color_discrete(labels = c("(1,1)", "(7,7)", "(15,15)")) +
   
   ggtitle("Convergence plot of estimates")
-
 ```
 
-From Figure \ref{fig:convergence_plot} we see that the algorithm quickly converges for all three initial conditions. The estimate for $\lambda_0$ appear to be almost converged after only a single iteration, while the estimate for $\lambda_1$ seem to need around 5 iterations for the same level of precicion. After 16 iterations all three initial positions were converged according to $\epsilon = 10^{-6}$. An explanation for why the estimate for $\lambda_0$ converges much quicker than the estimate for $\lambda_1$ is that $\hat \lambda_1 = `r round(result.em$lambda1,3)`$ is a lot larger than $\hat \lambda_0 = `r round(result.em$lambda0,3)`$. Consequently, $\hat E[x_i] = \frac{1}{\hat \lambda_0} = `r round(1 / result.em$lambda0,3)` > \hat E[y_i] = \frac{1}{\hat \lambda_1} = `r round(1 / result.em$lambda1,3)`$ and we expect $x_i = z_i$ much more often than $y_i = z_i$. This is also seen from the data where $\sum_{i=1}^n I(u_i = 1) = `r sum(u==1)`$ and $\sum_{i=1}^n I(u_i = 0) = `r sum(u==0)`$. Hence we have much more accurate observations for $x_i$ than we have for $y_i$ and therefore it is easier to compute $\hat \lambda_0$ than $\hat \lambda_1$.
+From Figure \ref{fig:convergence_plot} we see that the algorithm quickly converges for all three initial conditions. The estimate for $\lambda_0$ appear to be almost converged after only a single iteration, while the estimate for $\lambda_1$ seem to need around 5 iterations for the same level of precicion. After 16 iterations all three initial positions were converged according to $\epsilon = 10^{-6}$.
 
 ## 3)
 
@@ -1031,7 +1026,7 @@ u_i \left[ \ln(\lambda_0) - \lambda_0 z_i + \ln(1-e^{- \lambda_1 z_i}) \right]
 \right)
 \end{align*}
 
-The maximum likelihood estimators (MLE) are $(\hat \lambda_0, \hat \lambda_1) =\argmax_{(\lambda_0, \lambda_1)} L(\lambda_0, \lambda_1 | \vect z, \vect u) = \argmax_{(\lambda_0, \lambda_1)} l(\lambda_0, \lambda_1 | \vect z, \vect u)$. Unfortunately, it is not possible to find analytical formulas for the maximum likelihood estimators. We can, however, find the MLE numerically. An advantage of optimizing the likelihood directly compared to the EM algorithm is that when optimizing the likelihood directly the standard deviations of $\hat \lambda_0, \hat \lambda_1$ and the correlation between them is directly available without bootstrapping.
+The maximum likelihood estimators (MLE) are $(\hat \lambda_0, \hat \lambda_1) =\argmax_{(\lambda_0, \lambda_1)} = L(\lambda_0, \lambda_1 | \vect z, \vect u) = \argmax_{(\lambda_0, \lambda_1)} l(\lambda_0, \lambda_1 | \vect z, \vect u)$. Unfortunately, it is not possible to find analytical formulas for the maximum likelihood estimators. We can, however, find the MLE numerically. An advantage of optimizing the likelihood directly compared to the EM algorithm is that when optimizing the likelihood directly the standard deviations of $\hat \lambda_0, \hat \lambda_1$ and the correlation between them is directly available without bootstrapping.
 
 Let $\hat {\vect \lambda} = [\hat \lambda_0, \hat \lambda_1]^T$. To get an estimate for $\Cov [\hat {\vect \lambda}]$ we use that for independent samples we have that asymptotically as the number of samples goes to infinity the maximum likelihood estimates have the distribution
 
@@ -1062,9 +1057,7 @@ set.seed(1) # set seed for reproducible results
 # also calculate the Hessian matrix at the optimal values for lambda0 and lambda1
 # use fnscale = -1 for maximization instead of minimization
 # limit lambda0 and lambda1 to be larger than 0
-optim.result = optim(initial.lambdas, log.likelihood, NULL, z, u,
-                     
-                     control = list(fnscale = -1), hessian=TRUE, lower=c(0,0))
+optim.result = optim(initial.lambdas, log.likelihood, NULL, z, u, control = list(fnscale = -1), hessian=TRUE, lower=c(0,0))
 # calculate the mle estimate of the covariance matrix of the estimators for [lambda0, lambda1]
 cov.lambdas.mle = solve(- optim.result$hessian)
 # print the mle estimate of the covariance matrix of the estimator for [lambda0, lambda1]
