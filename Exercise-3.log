@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2021.4.11)  22 APR 2021 13:07
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2021.4.11)  22 APR 2021 14:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -620,147 +620,120 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 128
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
-48.
+49.
 (c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 149.
+(Font)              <10> on input line 150.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 149.
+(Font)              <7> on input line 150.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 149.
+(Font)              <5> on input line 150.
 <Exercise-3_files/figure-latex/plot_OG-1.pdf, id=69, 289.08pt x 216.81pt>
 File: Exercise-3_files/figure-latex/plot_OG-1.pdf Graphic file (type pdf)
 <use Exercise-3_files/figure-latex/plot_OG-1.pdf>
 Package pdftex.def Info: Exercise-3_files/figure-latex/plot_OG-1.pdf  used on i
-nput line 162.
+nput line 163.
 (pdftex.def)             Requested size: 289.09251pt x 216.81938pt.
 [1
 
 {c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdfte
 x.map} <./Exercise-3_files/figure-latex/plot_OG-1.pdf>]
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 236.
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 243.
 [2]
-<Exercise-3_files/figure-latex/unnamed-chunk-2-1.pdf, id=111, 289.08pt x 216.81
+<Exercise-3_files/figure-latex/unnamed-chunk-2-1.pdf, id=112, 289.08pt x 216.81
 pt>
 File: Exercise-3_files/figure-latex/unnamed-chunk-2-1.pdf Graphic file (type pd
 f)
 <use Exercise-3_files/figure-latex/unnamed-chunk-2-1.pdf>
 Package pdftex.def Info: Exercise-3_files/figure-latex/unnamed-chunk-2-1.pdf  u
-sed on input line 263.
+sed on input line 270.
 (pdftex.def)             Requested size: 289.09251pt x 216.81938pt.
-<Exercise-3_files/figure-latex/unnamed-chunk-3-1.pdf, id=112, 289.08pt x 216.81
+<Exercise-3_files/figure-latex/unnamed-chunk-3-1.pdf, id=113, 289.08pt x 216.81
 pt>
 File: Exercise-3_files/figure-latex/unnamed-chunk-3-1.pdf Graphic file (type pd
 f)
 <use Exercise-3_files/figure-latex/unnamed-chunk-3-1.pdf>
 Package pdftex.def Info: Exercise-3_files/figure-latex/unnamed-chunk-3-1.pdf  u
-sed on input line 281.
+sed on input line 288.
 (pdftex.def)             Requested size: 289.09251pt x 216.81938pt.
 [3 <./Exercise-3_files/figure-latex/unnamed-chunk-2-1.pdf>] [4 <./Exercise-3_fi
 les/figure-latex/unnamed-chunk-3-1.pdf>]
-Underfull \vbox (badness 10000) detected at line 434
+Underfull \vbox (badness 10000) detected at line 441
  []
 
 
-Underfull \vbox (badness 10000) detected at line 434
+Underfull \vbox (badness 10000) detected at line 441
  []
 
-[5]
-
-LaTeX Warning: Reference `fig:hist_sampled_res_LS' on page 6 undefined on input
- line 516.
-
-
-LaTeX Warning: Reference `fig:hist_sampled_res_LA' on page 6 undefined on input
- line 516.
-
-[6]
-<Exercise-3_files/figure-latex/hist_sampled_res_LS-1.pdf, id=154, 289.08pt x 21
-6.81pt>
-File: Exercise-3_files/figure-latex/hist_sampled_res_LS-1.pdf Graphic file (typ
-e pdf)
-<use Exercise-3_files/figure-latex/hist_sampled_res_LS-1.pdf>
-Package pdftex.def Info: Exercise-3_files/figure-latex/hist_sampled_res_LS-1.pd
-f  used on input line 527.
-(pdftex.def)             Requested size: 289.09251pt x 216.81938pt.
-<Exercise-3_files/figure-latex/hist_sampled_res_LA-1.pdf, id=155, 289.08pt x 21
-6.81pt>
-File: Exercise-3_files/figure-latex/hist_sampled_res_LA-1.pdf Graphic file (typ
-e pdf)
-<use Exercise-3_files/figure-latex/hist_sampled_res_LA-1.pdf>
-Package pdftex.def Info: Exercise-3_files/figure-latex/hist_sampled_res_LA-1.pd
-f  used on input line 540.
-(pdftex.def)             Requested size: 289.09251pt x 216.81938pt.
-[7 <./Exercise-3_files/figure-latex/hist_sampled_res_LS-1.pdf> <./Exercise-3_fi
-les/figure-latex/hist_sampled_res_LA-1.pdf>]
-<Exercise-3_files/figure-latex/plot_x101_LS-1.pdf, id=174, 289.08pt x 216.81pt>
+[5] [6]
+<Exercise-3_files/figure-latex/plot_x101_LS-1.pdf, id=154, 289.08pt x 216.81pt>
 
 File: Exercise-3_files/figure-latex/plot_x101_LS-1.pdf Graphic file (type pdf)
 <use Exercise-3_files/figure-latex/plot_x101_LS-1.pdf>
 Package pdftex.def Info: Exercise-3_files/figure-latex/plot_x101_LS-1.pdf  used
- on input line 584.
+ on input line 564.
 (pdftex.def)             Requested size: 289.09251pt x 216.81938pt.
-<Exercise-3_files/figure-latex/plot_x101_LA-1.pdf, id=175, 289.08pt x 216.81pt>
+[7 <./Exercise-3_files/figure-latex/plot_x101_LS-1.pdf>]
+<Exercise-3_files/figure-latex/plot_x101_LA-1.pdf, id=170, 289.08pt x 216.81pt>
 
 File: Exercise-3_files/figure-latex/plot_x101_LA-1.pdf Graphic file (type pdf)
 <use Exercise-3_files/figure-latex/plot_x101_LA-1.pdf>
 Package pdftex.def Info: Exercise-3_files/figure-latex/plot_x101_LA-1.pdf  used
- on input line 609.
+ on input line 590.
 (pdftex.def)             Requested size: 289.09251pt x 216.81938pt.
 
-LaTeX Warning: Reference `fig:plot_x101_LS' on page 8 undefined on input line 6
-14.
+LaTeX Warning: Reference `fig:plot_x101_LS' on page 8 undefined on input line 5
+97.
 
 
-LaTeX Warning: Reference `fig:plot_x101_LA' on page 8 undefined on input line 6
-15.
+LaTeX Warning: Reference `fig:plot_x101_LA' on page 8 undefined on input line 5
+98.
 
-[8 <./Exercise-3_files/figure-latex/plot_x101_LS-1.pdf>]
-<Exercise-3_files/figure-latex/unnamed-chunk-6-1.pdf, id=187, 433.62pt x 216.81
+[8 <./Exercise-3_files/figure-latex/plot_x101_LA-1.pdf>]
+<Exercise-3_files/figure-latex/unnamed-chunk-6-1.pdf, id=183, 433.62pt x 216.81
 pt>
 File: Exercise-3_files/figure-latex/unnamed-chunk-6-1.pdf Graphic file (type pd
 f)
 <use Exercise-3_files/figure-latex/unnamed-chunk-6-1.pdf>
 Package pdftex.def Info: Exercise-3_files/figure-latex/unnamed-chunk-6-1.pdf  u
-sed on input line 657.
+sed on input line 651.
 (pdftex.def)             Requested size: 433.63878pt x 216.81938pt.
-[9 <./Exercise-3_files/figure-latex/plot_x101_LA-1.pdf>] [10 <./Exercise-3_file
-s/figure-latex/unnamed-chunk-6-1.pdf>] [11]
-<Exercise-3_files/figure-latex/unnamed-chunk-11-1.pdf, id=218, 433.62pt x 216.8
+[9 <./Exercise-3_files/figure-latex/unnamed-chunk-6-1.pdf>] [10]
+<Exercise-3_files/figure-latex/unnamed-chunk-12-1.pdf, id=203, 433.62pt x 216.8
 1pt>
-File: Exercise-3_files/figure-latex/unnamed-chunk-11-1.pdf Graphic file (type p
+File: Exercise-3_files/figure-latex/unnamed-chunk-12-1.pdf Graphic file (type p
 df)
-<use Exercise-3_files/figure-latex/unnamed-chunk-11-1.pdf>
-Package pdftex.def Info: Exercise-3_files/figure-latex/unnamed-chunk-11-1.pdf  
-used on input line 795.
+<use Exercise-3_files/figure-latex/unnamed-chunk-12-1.pdf>
+Package pdftex.def Info: Exercise-3_files/figure-latex/unnamed-chunk-12-1.pdf  
+used on input line 792.
 (pdftex.def)             Requested size: 433.63878pt x 216.81938pt.
-[12 <./Exercise-3_files/figure-latex/unnamed-chunk-11-1.pdf>] [13] [14] [15] [1
-6]
-<Exercise-3_files/figure-latex/unnamed-chunk-14-1.pdf, id=265, 578.16pt x 216.8
+[11 <./Exercise-3_files/figure-latex/unnamed-chunk-12-1.pdf>] [12] [13] [14] [1
+5] [16]
+<Exercise-3_files/figure-latex/unnamed-chunk-16-1.pdf, id=255, 578.16pt x 216.8
 1pt>
-File: Exercise-3_files/figure-latex/unnamed-chunk-14-1.pdf Graphic file (type p
+File: Exercise-3_files/figure-latex/unnamed-chunk-16-1.pdf Graphic file (type p
 df)
-<use Exercise-3_files/figure-latex/unnamed-chunk-14-1.pdf>
-Package pdftex.def Info: Exercise-3_files/figure-latex/unnamed-chunk-14-1.pdf  
-used on input line 1115.
+<use Exercise-3_files/figure-latex/unnamed-chunk-16-1.pdf>
+Package pdftex.def Info: Exercise-3_files/figure-latex/unnamed-chunk-16-1.pdf  
+used on input line 1116.
 (pdftex.def)             Requested size: 469.75385pt x 176.15768pt.
-[17] [18 <./Exercise-3_files/figure-latex/unnamed-chunk-14-1.pdf>] [19] [20]
-Underfull \vbox (badness 3690) detected at line 1390
+[17 <./Exercise-3_files/figure-latex/unnamed-chunk-16-1.pdf>] [18] [19]
+Underfull \vbox (badness 3690) detected at line 1391
  []
 
-[21]
-Underfull \vbox (badness 10000) detected at line 1390
+[20]
+Underfull \vbox (badness 10000) detected at line 1391
  []
 
 
-Underfull \vbox (badness 10000) detected at line 1390
+Underfull \vbox (badness 10000) detected at line 1391
  []
 
-[22] [23]
-Overfull \hbox (41.61363pt too wide) in paragraph at lines 1488--1496
+[21] [22]
+Overfull \hbox (41.61363pt too wide) in paragraph at lines 1489--1497
 []\T1/lmr/m/n/10 The max-i-mum like-li-hood es-ti-ma-tors (MLE) are $\OT1/lmr/m
 /n/10 ([]\OML/lmm/m/it/10 ; []\OT1/lmr/m/n/10 ) = [][] = \OML/lmm/m/it/10 L\OT1
 /lmr/m/n/10 (\OML/lmm/m/it/10 ^^U[]; ^^U[]\OMS/lmsy/m/n/10 j[]\OML/lmm/m/it/10 
@@ -769,25 +742,25 @@ Overfull \hbox (41.61363pt too wide) in paragraph at lines 1488--1496
 /m/n/10 .
  []
 
-[24] [25] (./Exercise-3.aux)
+[23] [24] (./Exercise-3.aux)
 
 LaTeX Warning: There were undefined references.
 
 Package rerunfilecheck Info: File `Exercise-3.out' has not changed.
-(rerunfilecheck)             Checksum: 3802358151D3E3D22DC9C56A53585FC0;3418.
+(rerunfilecheck)             Checksum: 6A4B3C9A587E743A2696DE0A55FFC702;3418.
  ) 
 Here is how much of TeX's memory you used:
- 13305 strings out of 480954
- 204012 string characters out of 5905582
- 528271 words of memory out of 5000000
- 30209 multiletter control sequences out of 15000+600000
+ 13288 strings out of 480954
+ 203205 string characters out of 5905582
+ 531240 words of memory out of 5000000
+ 30195 multiletter control sequences out of 15000+600000
  476675 words of font info for 82 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 71i,21n,79p,738b,467s stack positions out of 5000i,500n,10000p,200000b,80000s
-{c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.e
-nc}{c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.
-enc}{c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ma
-thsy.enc}{c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/
+ 71i,22n,79p,738b,467s stack positions out of 5000i,500n,10000p,200000b,80000s
+{c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.e
+nc}{c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mat
+hsy.enc}{c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/l
+m-rm.enc}{c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/
 lm-mathit.enc}{c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvip
 s/lm/lm-mathex.enc}<c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/fonts/typ
 e1/public/lm/lmbx10.pfb><c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/font
@@ -812,10 +785,10 @@ blic/lm/lmtk10.pfb><c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/fonts/typ
 e1/public/lm/lmtt10.pfb><c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dist/font
 s/type1/public/lm/lmtti10.pfb><c:/Users/joffa/AppData/Roaming/TinyTeX/texmf-dis
 t/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on Exercise-3.pdf (25 pages, 445278 bytes).
+Output written on Exercise-3.pdf (24 pages, 444943 bytes).
 PDF statistics:
- 435 PDF objects out of 1000 (max. 8388607)
- 362 compressed objects within 4 object streams
- 96 named destinations out of 1000 (max. 500000)
- 179 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 419 PDF objects out of 1000 (max. 8388607)
+ 351 compressed objects within 4 object streams
+ 95 named destinations out of 1000 (max. 500000)
+ 169 words of extra memory for PDF output out of 10000 (max. 10000000)
 
