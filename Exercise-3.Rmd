@@ -55,13 +55,15 @@ library(tidyverse)
 
 ## Comparing AR(2) parameter estimators using resampling of residuals
 
-In this problem we are going to analyze the non-Gaussian time-series data in `data3A\$x`. The data contains a subsequence of length $T = 100$. The target is to compare two different estimators. A plot of the data is given in Fig.\ref(fig:plot_OG).
-
 ```{r plot_OG, fig.height=3, fig.width=4, fig.cap="\\label{fig:plot_OG} Plot of the non-Gaussian time series."}
 source("probAdata.R")
 df_OG_data = data.frame(t = seq(1, 100), Value = data3A$x)
 ggplot(data = df_OG_data, aes(x = t, y = Value)) + geom_point()
 ```
+
+
+In this problem we are going to analyze the non-Gaussian time-series data in `data3A\$x`. The data contains a subsequence of length $T = 100$. The target is to compare two different estimators. A plot of the data is given in Figure \ref{fig:plot_OG}.
+
 
 To model the time series data we consider an AR(2) model:
 

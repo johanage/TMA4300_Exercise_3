@@ -46,3 +46,6 @@ vignettes/*.pdf
 
 # Copy files
 CopyOf*
+
+# Log files
+*.log
