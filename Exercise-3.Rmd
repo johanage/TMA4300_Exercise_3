@@ -117,16 +117,18 @@ where:
 \widehat{\mathrm{Bias}}(\hat{\vect{\beta}}) =  \hat{\vect{\beta}}^{*}(\cdot) - t(\hat{F}),
 \end{equation}
 
-where $\hat{\vect{\beta}}^{*}(\cdot)$ represents the bootstrap mean of the beta estimator of the LS and LA method  and $t(\hat{F})$ is the calculated estimators from the original data.
+where $\hat{\vect{\beta}}^{*}(\cdot)$ represents the bootstrap mean of the beta estimator of the LS or LA method  and $t(\hat{F})$ is the calculated LS or LA estimator for the original time series.
 
 
 ```{r}
+# import given help functions
 source("probAhelp.R", local = knitr::knit_global())
+#compute LA and LS estimators for original time series
 minisers_ar2 = ARp.beta.est(x = data3A$x, p = 2)
 eps_residuals_LS = ARp.resid(x = data3A$x, beta = minisers_ar2$LS)
 eps_residuals_LA = ARp.resid(x = data3A$x, beta = minisers_ar2$LA)
 
-#pick values for x1 and x2 
+# function for picking x1 and x2 values
 #by picking a random consecutive subsequence from the data
 sample_consecutive = function(x){
   "Input:
@@ -136,9 +138,6 @@ sample_consecutive = function(x){
   idx = sample(seq(1,length(x)-1), size = 1, replace = FALSE)
   return(x[idx:(idx+1)])
 }
-
-x1x2_sample1 = sample_consecutive(x = data3A$x)
-# print(x1x2_sample1)
 ```
 
 
@@ -271,16 +270,11 @@ print(boot1$bias_beta_LA[1])
 ```
 
 
-The LS estimator is optimal for Gaussian AR(p) processes.
+The LS estimator is optimal for Gaussian AR(p) processes. From the calculated variance of the estimators it is not evident which method is better. The LS method has a slightly larger variance than the LA method. The bias is also slightly larger for the LS method than the LA method. However these differences can just be due to randomness in the bootstrap. Consequently, the LS method does not appear to be more optimal than the LA method.
 
-### Explaination if the LS estimator is also optimal for this problem.
+## 2)
 
-From the calculated variance of the estimators it is not evident which method is better. The LS method has a slightly larger variance than the LA method. The bias is also slightly larger for the LS method than the LA method. However these differences can justs be due to randomness in the bootstrap.
-
-## A.2 
-### Computation of a $95 \%$ confidence interval for $x_{101}$ based upon both estimators.
-
-To be able to compute the confidence interval for $x_{101}$ we have to use the results from 1. To simulate the value of $x_{101}$ we need to estimate the residual distribution corresponding to the bootstrapped time series and parameter estimates. The strategy we will follow for this problem is:
+To be able to compute the confidence interval for $x_{101}$ we choose to use the results from Problem A1. To simulate the value of $x_{101}$ we need to estimate the residual distribution corresponding to the bootstrapped time series and parameter estimates. The strategy we will follow for this problem is:
 
 1. Compute residual distribution for LS and LA by sampling from the time series data.
 2. Sample from the residual distribution to simulate a value $x_{101}$ by using the AR(2) scheme using last 2 values of original data $x_{99}$ and $x_{100}$.
