@@ -141,7 +141,7 @@ sample_consecutive = function(x){
 ```
 
 
-```{r, fig.height=3, fig.width=4, fig.cap=" \\label{LS_resampling} Plot of the samples generated from the LS resampling."}
+```{r, fig.height=3, fig.width=4, fig.cap=" \\label{LS_resampling} Plot of a random bootstrapped time series using the LS model."}
 # do a resampling using the LS residuals and plot the samples
 calc_x_LS = ARp.filter(x0 = x1x2_sample1, 
                        beta = minisers_ar2$LS, 
@@ -150,7 +150,7 @@ df_samples_LS = data.frame(t = seq(1,100), Value = calc_x_LS)
 ggplot(data = df_samples_LS) + geom_point(aes(x = t, y = Value))
 ```
 
-```{r, fig.height=3, fig.width=4, fig.cap=" \\label{LA_resampling} Plot of the samples generated from the LA resampling."}
+```{r, fig.height=3, fig.width=4, fig.cap=" \\label{LA_resampling} Plot of a random bootstrapped time series using the LS model."}
 # do a resampling using the LA residuals and plot the samples
 calc_x_LA = ARp.filter(x0 = x1x2_sample1, 
                        beta = minisers_ar2$LA, 
@@ -281,7 +281,7 @@ To be able to compute the confidence interval for $x_{101}$ we choose to use the
 3. Find the limits in the prediction interval for $x_{101}$ as quantiles in the simulated $x_{101}$ values by using the \textbf{stats::quantile()}-function using $\textrm{probs} = \textrm{c}(0.025, 0.975)$.
 
 
-```{r plot_x101_LS, fig.cap=" \\label{plot_x101_LS} Plot of the $x_{101}$'s simulated by LS. The vertical lines represents the $95%$ prediction interval."}
+```{r plot_x101_LS, fig.cap=" \\label{plot_x101_LS} Plot of the $x_{101}$'s simulated by LS. The vertical lines represents the $95\%$ prediction interval."}
 #computing prediction interval for LS
 q_x101_LS = stats::quantile(x = boot1$x101_LS, probs = c(0.025, 0.975))
 
@@ -303,7 +303,7 @@ ggplot(data = df_x101) + geom_histogram(aes(x = x101_ls)) +
 ```
 
 
-```{r plot_x101_LA, fig.cap=" \\label{plot_x101_LA} Plot of the $x_{101}$'s simulated by LA. The vertical lines represents the $95%$ prediction interval."}
+```{r plot_x101_LA, fig.cap=" \\label{plot_x101_LA} Plot of the $x_{101}$'s simulated by LA. The vertical lines represents the $95\%$ prediction interval."}
 print(paste0("The 95% prediction interval for LA is ", q_x101_LA[1], " to ", q_x101_LA[2]))
 ggplot(data = df_x101) + geom_histogram(aes(x = x101_la)) + 
   geom_vline(xintercept = df_x101$q_LA[1], show.legend = TRUE ) + 
