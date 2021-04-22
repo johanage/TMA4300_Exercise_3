@@ -5,11 +5,11 @@ author:
 - Arne Rustad
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: pdf_document
-  # bookdown::pdf_document2: default
 subtitle: TMA4300 Computer intensive statistical methods Spring 2021
 header-includes:
 - \usepackage{subfig}
 - \usepackage[ruled,vlined]{algorithm2e}
+- \usepackage{placeins}
 - \SetKw{KwBy}{by}
 - \SetKwProg{Init}{init}{}{}
 - \SetKw{length}{length}
@@ -57,7 +57,7 @@ library(tidyverse)
 
 In this problem we are going to analyze the non-Gaussian time-series data in `data3A$x`. The data contains a sequence of length $T = 100$. The target is to compare two different estimators. A plot of the data is given in Figure \ref{fig:plot_OG}.
 
-```{r plot_OG, fig.height=3, fig.width=4, fig.cap=" \\label{fig:plot_OG} Plot of the non-Gaussian time series."}
+```{r plot_OG, fig.height=3, fig.width=6, fig.cap=" \\label{fig:plot_OG} Plot of the non-Gaussian time series."}
 source("probAdata.R")
 df_OG_data = data.frame(t = seq(1, 100), Value = data3A$x)
 ggplot(data = df_OG_data, aes(x = t, y = Value)) + geom_point()
@@ -76,7 +76,7 @@ Q_{LS} (\mathbf{x}) = \sum_{t=3}^{T} ( x_t - \beta_1 x_{t-1} - \beta_2 x_{t-2} )
 Q_{LA} (\mathbf{x}) = \sum_{t=3}^{T} |x_t - \beta_1 x_{t-1} - \beta_2 x_{t-2}|.
 \end{align}
 
-The minimisers $\vect{\beta}_{LS}$ and $\vect{\beta}_{LA}$ are calculated by the given function \textbf{ARp.beta.est}. We then define the estimated residuals to be:
+The minimisers $\hat {\vect{\beta}}_{LS}$ and $\hat {\vect{\beta}}_{LA}$ are calculated by the given function \textbf{ARp.beta.est}. We then define the estimated residuals to be:
 
 \begin{equation}\label{estimated_residuals}
 \hat{e}_t = x_t -\hat{\beta}_1x_{t-1} -\hat{\beta}_2 x_{t-2}
@@ -84,6 +84,17 @@ The minimisers $\vect{\beta}_{LS}$ and $\vect{\beta}_{LA}$ are calculated by the
 
 for $t = 3, . . . , T$, and let $\bar{e}$ be the mean of these. The $\hat{e}_t$ can be re-centered
 to have mean zero by defining $\hat{\epsilon}_t = \hat{e}_t -\bar{e}$. The re-cented residuals $\hat{\epsilon}_t$ can be directly obtained from given function \textbf{ARp.resid} for both methods LS and LA.
+
+```{r}
+# import given help functions
+source("probAhelp.R", local = knitr::knit_global())
+#compute LA and LS estimators for original time series
+minimisers_ar2 = ARp.beta.est(x = data3A$x, p = 2)
+```
+
+
+For our given time series data we get $\hat {\vect \beta}_{LS} = [\hat \beta_{1,LS}, \hat \beta_{2,LS}] = [`r round(minimisers_ar2$LS[1], 3)`, `r round(minimisers_ar2$LS[2], 3)`]$ and $\hat {\vect \beta}_{LA} = [\hat \beta_{1,LA}, \hat \beta_{2,LA}] = [`r round(minimisers_ar2$LA[1], 3)`, `r round(minimisers_ar2$LA[2], 3)`]$.
+
 
 ## 1)
 
@@ -96,37 +107,12 @@ x_2 & x_3 & x_4 & \dots & x_{100}.
 \end{pmatrix}
 \end{equation}
 
-The rest of each bootstrapped time series is then computed iteratively by the AR(2) scheme in Equation (\ref{AR2}) and resampling with replacement from the residuals computed from the original time series. This is done for both methods LA and LS. We do this using the given function \textbf{ARp.filter}.
-
-To evaluate the performance of the two estimators $\hat {\vect{\beta}}_{LS}$ and $\hat {\vect{\beta}}_{LA}$ we choose to look at the estimates for the variance and the bias of each estimator. We will use our bootstrapped time series to do this. We denote the minimiser function of a general loss function $Q(\vect{x})$ as $s(\vect{x})$. The following algorithm for calculating the variance and bias for the estimators in the residual bootstrapping is then given by
-
-1. Generate $B$ bootstrap samples $\vect{x}^{1*}, \dots, \vect{x}^{B*}$ for both LS and LA method using the estimators $\hat{\vect{\beta}}_{LS}$ and $\hat{\vect{\beta}}_{LA}$.
-2. Evaluate the corresponding parameter estimates both methods: $\hat{\beta}^{*}(b) = s(\vect{x}^{b*}) , b = 1,2, \dots, B$. 
-3. Estimate the variance for both methods by:
-
-\begin{equation}
-\hat{\mathrm{Var}}_B = \frac{ \sum_{b=1}^B \left( \hat{\beta}^{*}(b) - \hat{\beta}^{*}(\cdot) \right)^2 }{B-1},
-\end{equation}
-where:
-\begin{equation}
-\hat{\beta}^{*}(\cdot) \equiv \frac{1}{B}\sum_{b=1}^B \hat{\beta}^{*}(b)
-\end{equation}
-
-4. Calculate bias for both methods by:
-\begin{equation}
-\widehat{\mathrm{Bias}}(\hat{\vect{\beta}}) =  \hat{\vect{\beta}}^{*}(\cdot) - t(\hat{F}),
-\end{equation}
-
-where $\hat{\vect{\beta}}^{*}(\cdot)$ represents the bootstrap mean of the beta estimator of the LS or LA method  and $t(\hat{F})$ is the calculated LS or LA estimator for the original time series.
-
+The rest of each bootstrapped time series is then computed iteratively by the AR(2) scheme in Equation (\ref{AR2}). Here the new residuals are sampled with replacement from the residuals computed for the original time series. This is done for both methods LA and LS. We do this using the given function \textbf{ARp.filter}.
 
 ```{r}
-# import given help functions
-source("probAhelp.R", local = knitr::knit_global())
-#compute LA and LS estimators for original time series
-minisers_ar2 = ARp.beta.est(x = data3A$x, p = 2)
-eps_residuals_LS = ARp.resid(x = data3A$x, beta = minisers_ar2$LS)
-eps_residuals_LA = ARp.resid(x = data3A$x, beta = minisers_ar2$LA)
+# compute LA and LS resiudals for original time series
+eps_residuals_LS = ARp.resid(x = data3A$x, beta = minimisers_ar2$LS)
+eps_residuals_LA = ARp.resid(x = data3A$x, beta = minimisers_ar2$LA)
 
 # function for picking x1 and x2 values
 #by picking a random consecutive subsequence from the data
@@ -134,184 +120,223 @@ sample_consecutive = function(x){
   "Input:
   - original time series
   Output:
-  - a consecutive pair of data points form the original data series"
+  - a consecutive pair of data points from the original data series"
   idx = sample(seq(1,length(x)-1), size = 1, replace = FALSE)
   return(x[idx:(idx+1)])
 }
 ```
 
+In Figure \ref{LS_resampling} and Figure \ref{LA_resampling} we plot a bootstrapped time series realization for respectively the LS and LA model. They both appear quite reasonable. The reason they are so similar is that they are both computed using the same seed and consequently the same time steps are drawn for the residual resampling step. Note that although the drawn time steps are the same, the drawn residuals still differ a bit due to being estimated from respectively $\hat {\vect \beta}_{LS}$ and $\hat {\vect \beta}_{LA}$.
 
-```{r, fig.height=3, fig.width=4, fig.cap=" \\label{LS_resampling} Plot of a random bootstrapped time series using the LS model."}
+```{r, fig.height=3, fig.width=6, fig.cap=" \\label{LS_resampling} Plot of a bootstrapped time series realization using the LS model."}
 # do a resampling using the LS residuals and plot the samples
+set.seed(1)
+x1x2_sample1 = sample_consecutive(data3A$x)
 calc_x_LS = ARp.filter(x0 = x1x2_sample1, 
-                       beta = minisers_ar2$LS, 
+                       beta = minimisers_ar2$LS, 
                        e = sample(eps_residuals_LS, size=length(eps_residuals_LS), replace=TRUE))
 df_samples_LS = data.frame(t = seq(1,100), Value = calc_x_LS)
-ggplot(data = df_samples_LS) + geom_point(aes(x = t, y = Value))
+ggplot(data = df_samples_LS) + geom_point(aes(x = t, y = Value)) +
+  
+  ggtitle("Bootstrapped realization for LS model")
 ```
 
-```{r, fig.height=3, fig.width=4, fig.cap=" \\label{LA_resampling} Plot of a random bootstrapped time series using the LS model."}
+```{r, fig.height=3, fig.width=6, fig.cap=" \\label{LA_resampling} Plot of a bootstrapped time series realization using the LA model."}
 # do a resampling using the LA residuals and plot the samples
+set.seed(1)
 calc_x_LA = ARp.filter(x0 = x1x2_sample1, 
-                       beta = minisers_ar2$LA, 
+                       beta = minimisers_ar2$LA, 
                        e = sample(eps_residuals_LA, size=length(eps_residuals_LA), replace=TRUE))
 df_samples_LA = data.frame(t = seq(1,100), Value = calc_x_LA)
-ggplot(data = df_samples_LA) + geom_point(aes(x = t, y = Value))
+ggplot(data = df_samples_LA) + geom_point(aes(x = t, y = Value)) +
+  
+  ggtitle("Bootstrapped realization for LA model")
 ```
 
+
+\FloatBarrier
+
+To evaluate the performance of the two estimators $\hat {\vect{\beta}}_{LS}$ and $\hat {\vect{\beta}}_{LA}$ we choose to look at the estimates for the variance and the bias of each estimator. We will use our bootstrapped time series to do this. We denote $s(\vect{x})$ as the $\vect \beta$ values that minimises a general loss function $Q(\vect{x})$. The following algorithm for calculating the variance and bias for the estimators in the residual bootstrapping is then given by
+
+1. Generate $B$ bootstrap samples $\vect{x}^{1*}, \dots, \vect{x}^{B*}$ for both LS and LA method using the estimators $\hat{\vect{\beta}}_{LS}$ and $\hat{\vect{\beta}}_{LA}$ along with residual resampling from original time series $\vect x$.
+2. Evaluate the corresponding parameter estimates for both methods:
+\begin{equation*}
+\hat{\vect \beta}^{b*} = [\beta_1^{b*}, \beta_2^{b*}] = s(\vect{x}^{b*}), \qquad b = 1,2, \dots, B.
+\end{equation*}
+3. Estimate the variance of $\hat \beta_1$ and $\hat \beta_2$ for both methods by:
+
+\begin{align*}
+\widehat{\mathrm{Var}}[\hat \beta_1] &= \frac{ \sum_{b=1}^B \left( \hat{\beta}_1^{*b} - \bar{\beta}_1^{*} \right)^2 }{B-1} \\
+\widehat{\mathrm{Var}}[\hat \beta_2] &= \frac{ \sum_{b=1}^B \left( \hat{\beta}_2^{*b} - \bar{\beta}_2^{*} \right)^2 }{B-1} \\
+\end{align*}
+where:
+\begin{equation*}
+\bar{\beta}_i^{*} \equiv \frac{1}{B}\sum_{b=1}^B \hat{\beta}_i^{b*}, \qquad \textrm{for } i = 1,2
+\end{equation*}
+
+4. Calculate bias of $\hat \beta_1$ and $\hat \beta_2$ for both methods by:
+\begin{align*}
+\widehat{\mathrm{Bias}}(\hat{\beta}_1) =  \bar{\beta}_1^{*} - \hat \beta_1 \\
+\widehat{\mathrm{Bias}}(\hat{\beta}_2) =  \bar{\beta}_2^{*} - \hat \beta_2
+\end{align*}
+
+where $\bar{\beta_i}^{*}$ represents the bootstrap mean of the estimator $\beta_i$ for the LS or LA method and $\hat \beta_i$ is the LS or LA estimator for $\beta_i$ calculated from the original time series.
+
+
 ```{r}
-# bootstrap resampling algo
+# bootstrap resampling algorithm
 set.seed(2021)
-residual_bootstrap_resampling = function(x, p, B){
-  "Inputs:
+residual.bootstrap.resampling = function(x, p, B){
+  "
+  Inputs:
   - x = original time series data, type = vector
   - p is the degree of the AR(p) model you want to use, type = int
   - B is the number of bootstrap samples you want, type = int
   Outputs:
-  - LS = samples using the LS method, type = vector, size = length(x)*B 
-  - LA = samples using the LA method , type = vector, size = length(x)*B 
-  - betas_LS_est = beta estimators using the LS method, type = vector, size = 2*B
-  - betas_LA_est = beta estimators using the LA method, type = vector, size = 2*B
-  - est_var_beta_LS = estimated variance using the estimators from the LS method, type = double
-  - est_var_beta_LA = estimated variance using the estimators from the LA method, type = double
-  - bias_beta_LS = estimated bias using the estimators from the LS method, type = double
-  - bias_beta_LA = estimated bias using the estimators from the LA method, type = double
-  - resiudals_LS = esimated residuals using the LS method, type = vector, size = length(x)*B
-  - resiudals_LA = esimated residuals using the LA method, type = vector, size = length(x)*B 
-  - x101_LS = simulated value of x101 using the data from the LS method, type = double 
-  - x101_LA = simulated value of x101 using the data from the LA method, type = double "
+  - betas_LS_est = beta estimators using the LS method, type = matrix, nrow = B, ncol = 2
+  - betas_LA_est = beta estimators using the LA method, type = matrix, nrow = B, ncol = 2
+  - var_beta_LS = estimated variance using the estimators from the LS method, type = vector
+  - var_beta_LA = estimated variance using the estimators from the LA method, type = vector
+  - bias_beta_LS = estimated bias using the estimators from the LS method, type = vector
+  - bias_beta_LA = estimated bias using the estimators from the LA method, type = vector
+  - x101_LS = simulated value of x101 using the data from the LS method, type = vector
+  (for use in task A2)
+  - x101_LA = simulated value of x101 using the data from the LA method, type = vector
+  (for use in task A2)
+  "
+  # initialize vectors for storing beta estimates for LS and LA method
+  beta_est_LS = matrix(NA, nrow = B, ncol = 2)
+  beta_est_LA = matrix(NA, nrow = B, ncol = 2)
   
-  samples_LS = c()
-  samples_LA = c()
-  beta_est_LS = c()
-  beta_est_LA = c()
-  e_est_LS = c()
-  e_est_LA = c()
   #calculating the minimisers for the original data
   beta_vec_OG = ARp.beta.est(x = x, p = p)
-  #calculating the recentered residuals
+  
+  #calculating the recentered residuals for the original data for LS and LA method
   eps_LS = ARp.resid(x = x, beta = beta_vec_OG$LS)
   eps_LA = ARp.resid(x = x, beta = beta_vec_OG$LA)
   
-  #initializing the x101 vectors
-  x101_ls = c()
-  x101_la = c()
-  for(i in 1:B){
-    " Done equally for both methods LS, LA
-    Algo:
-    1. Sample pair x1 and x2 from the given data
-    2 Use help function ARp.filter to:
-    2.1 Resample residuals w/replacement from original data
-    2.2 Generate bootstrap with initialized values x_pair
-    3. Use help function ARp.beta.est to calculate the betas for bootstrap sample
-    "
+  #initializing vectors for storing the x101 samples for LS and LA method
+  x101_LA = rep(NA, B)
+  x101_LS = rep(NA, B)
+  
+  for(b in 1:B){
     #sample pair from original time series data
     x_pair = sample_consecutive(x = x)
     
-    #sampling by initializing the consecutive pair
+    #sampling full bootstrap time series by initializing with drawn consecutive pair and
+    #resampling with replacement from the residuals for original time series and
+    #corresponding model
     x_LS = ARp.filter(x0 = x_pair, 
                          beta = beta_vec_OG$LS, 
                          e = sample(eps_LS, size=length(eps_LS), replace=TRUE))
-    #calculate minimisers based upon bootstrap/resampling and adding to list of betas
-    beta_vec_star = ARp.beta.est(x = x_LS, p = p)
-    beta_est_LS = c(beta_est_LS, beta_vec_star$LS)
-    # print(sqrt(var(x_LS)))
-    samples_LS = c(samples_LS, x_LS)
-    
-    #calculate the residual of the iteration for task 2.
-    # using bootstrap sample to calc residuals with estimated betas
-    e_est_LS = c(e_est_LS, ARp.resid(x = x_LS, beta = beta_vec_star$LS))
-    
-    #creating the x101 sample by sampling from the residuals and using the estimated betas
-    e_101_LS = sample(e_est_LS, size = 1, replace = TRUE)
-    x101_ls = c(x101_ls, beta_vec_star$LS[2]*x[length(x)] + beta_vec_star$LS[1]*x[length(x)-1] + e_101_LS)
-    
-    #sampling by initializing the consecutive pair
     x_LA = ARp.filter(x0 = x_pair, 
-                         beta = beta_vec_OG$LA, 
-                         e = sample(eps_LA, size=length(eps_LA), replace=TRUE))
-    samples_LA = c(samples_LA, x_LA)
-    #calculate minimisers based upon bootstrap/resampling and adding to list of betas
-    beta_vec_star = ARp.beta.est(x = x_LA, p = p)
-    beta_est_LA = c(beta_est_LA, beta_vec_star$LA)
+                     beta = beta_vec_OG$LA, 
+                     e = sample(eps_LA, size=length(eps_LA), replace=TRUE))
     
-    #calculate the residual of the iteration for task 2.
+    #calculate estimators based upon bootstrapped time series and adding to list of beta estimates
+    beta_est_LS[b,] = ARp.beta.est(x = x_LS, p = p)$LS
+    beta_est_LA[b,] = ARp.beta.est(x = x_LA, p = p)$LA
+    
+    ############# Begin step for task A2
     # using bootstrap sample to calc residuals with estimated betas
-    e_est_LA = c(e_est_LA, ARp.resid(x = x_LA, beta = beta_vec_star$LA))
+    e_est_LS = ARp.resid(x = x_LS, beta = beta_est_LS[b,])
+    e_est_LA = ARp.resid(x = x_LA, beta = beta_est_LA[b,])
     
-    #creating the x101 sample by sampling from the residuals and using the estimated betas
-    e_101_LA = sample(e_est_LA, size = 1, replace = TRUE)
-    x101_la = c(x101_la, beta_vec_star$LA[2]*x[length(x)] + beta_vec_star$LA[1]*x[length(x)-1] + e_101_LA)
+    #creating the x101 sample by sampling from the bootstrap residuals and using the estimated betas
+    #along with x100 and x99 from original time series
+    e_101_LS = sample(e_est_LS, size = 1)
+    x101_LS[b] = beta_est_LS[b, 2]*x[length(x)] + beta_est_LS[b, 1]*x[length(x)-1] + e_101_LS
     
+    e_101_LA = sample(e_est_LA, size = 1)
+    x101_LA[b] = beta_est_LA[b, 2]*x[length(x)] + beta_est_LA[b, 1]*x[length(x)-1] + e_101_LA
+    
+    ########### End step for task A2
   }
   #calculate the estimates of the variance of the estimators
-  hat_SE_B_LS = sum((beta_est_LS - mean(beta_est_LS))^2)/(B -1)
-  hat_SE_B_LA = sum((beta_est_LA - mean(beta_est_LA))^2)/(B -1)
-  return(list(LS = samples_LS, LA = samples_LA,
-              betas_LS_est = beta_est_LS,
+  var_beta_LS = apply(beta_est_LS, 2, var)
+  var_beta_LA = apply(beta_est_LA, 2, var)
+  #calculate the estimates of the bias of the estimators
+  bias_beta_LS = apply(beta_est_LS, 2, mean) - beta_vec_OG$LS
+  bias_beta_LA = apply(beta_est_LA, 2, mean) - beta_vec_OG$LA
+  return(list(betas_LS_est = beta_est_LS,
+              
               betas_LA_est = beta_est_LA,
-              est_var_beta_LS = hat_SE_B_LS,
-              est_var_beta_LA = hat_SE_B_LA,
-              bias_beta_LS = mean(beta_est_LS) - beta_vec_OG$LS,
-              bias_beta_LA = mean(beta_est_LA) - beta_vec_OG$LA,
-              resiudals_LS = e_est_LS,
-              resiudals_LA = e_est_LA, 
-              x101_LS = x101_ls, 
-              x101_LA = x101_la))
+              
+              var_beta_LS = var_beta_LS,
+              
+              var_beta_LA = var_beta_LA,
+              
+              bias_beta_LS = bias_beta_LS,
+              
+              bias_beta_LA = bias_beta_LA,
+              
+              x101_LS = x101_LS,
+              
+              x101_LA = x101_LA))
 }
 
-#estimating  the variance and bias of the two estimators
-boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 2000)
-print(paste0("Variance of the betas: LS = ", boot1$est_var_beta_LS[1]," and LA = ", boot1$est_var_beta_LA[1]))
-
-print("Bias of the two estimators:")
-print(boot1$bias_beta_LS[1])
-print(boot1$bias_beta_LA[1])
+#estimating the variance and bias of the two estimators
+set.seed(1)
+result.res.bootstrap = residual.bootstrap.resampling(x = data3A$x, p = 2, B = 10000)
 ```
 
 
-The LS estimator is optimal for Gaussian AR(p) processes. From the calculated variance of the estimators it is not evident which method is better. The LS method has a slightly larger variance than the LA method. The bias is also slightly larger for the LS method than the LA method. However these differences can just be due to randomness in the bootstrap. Consequently, the LS method does not appear to be more optimal than the LA method.
+\begin{table}[!h]
+\centering
+\begin{tabular}{| l | r | r |}
+\hline
+ & LS estimator & LA estimator\\
+\hline
+$\widehat {\Var} [\hat \beta_1]$ & $`r signif(result.res.bootstrap$var_beta_LS[1],3)`$ & $`r signif(result.res.bootstrap$var_beta_LA[1],3)`$ \\
+$\widehat {\Var} [\hat \beta_2]$ & $`r signif(result.res.bootstrap$var_beta_LS[2],3)`$ & $`r signif(result.res.bootstrap$var_beta_LA[2], 3)`$ \\
+$\widehat {\bias} [\hat \beta_1]$ & $`r signif(result.res.bootstrap$bias_beta_LS[1],3)`$ & $`r signif(result.res.bootstrap$bias_beta_LA[1], 3)`$ \\
+$\widehat {\bias} [\hat \beta_2]$ & $`r signif(result.res.bootstrap$bias_beta_LS[2],3)`$ & $`r signif(result.res.bootstrap$bias_beta_LA[2], 3)`$ \\
+\hline
+\end{tabular}
+\caption{Table containing the variance and bias estimates from the residual resampling bootstrap comparing the LS and LA model.}
+\label{table:residual_bootstrap}
+\end{table}
+
+The LS estimator is optimal for Gaussian AR(p) processes, however, from Table \ref{table:residual_bootstrap} we see that for this problem the LA estimator appear to be superior. The LA estimator has both lower variance by a factor of 10 and lower bias by a factor of around 5 for both $\hat \beta_1$ and $\hat \beta_2$. Therefore, we prefere the LA estimates for this problem.
+
 
 ## 2)
 
-To be able to compute the confidence interval for $x_{101}$ we choose to use the results from Problem A1. To simulate the value of $x_{101}$ we need to estimate the residual distribution corresponding to the bootstrapped time series and parameter estimates. The strategy we will follow for this problem is:
+In this task we want to compute a prediction interval for $x_{101}$. To do this we slightly altered the function \textbf{residual.bootstrap.resampling} in task A1. For each bootstrapped time series $\vect x^{b*}$ and parameter estimates $\hat {\vect \beta}^{b*}$ we 
 
-1. Compute residual distribution for LS and LA by sampling from the time series data.
-2. Sample from the residual distribution to simulate a value $x_{101}$ by using the AR(2) scheme using last 2 values of original data $x_{99}$ and $x_{100}$.
-3. Find the limits in the prediction interval for $x_{101}$ as quantiles in the simulated $x_{101}$ values by using the \textbf{stats::quantile()}-function using $\textrm{probs} = \textrm{c}(0.025, 0.975)$.
+1. Estimate the corresponding residual distribution
+2. Draw one residual $\epsilon_{101}^{b*}$ from the estimated residual distribution
+2. Use the residual $\epsilon_{101}^{b*}$ combined with bootstrap parameter estimates $\hat {\vect \beta}^{b*}$ to simulate a value $x_{101}^{b*}$. This is done using the AR(2) scheme in Equation (\ref{AR2}) and $x_{100}$ and $x_{99}$ from the original time series.
+
+Let $\vect x_{101}^{*} = [x_{101}^{1*}, x_{101}^{2*}, \dots, x_{101}^{B*}]$. We find the limits of the $95\%$ prediction interval for $x_{101}$ as the the 0.025 quantile of $\vect x_{101}^{*}$ and the 0.975 quantile of $\vect x_{101}^{*}$.
+
+This is done for both the LS and LA method.
 
 
 ```{r plot_x101_LS, fig.cap=" \\label{plot_x101_LS} Plot of the $x_{101}$'s simulated by LS. The vertical lines represents the $95\\%$ prediction interval."}
 #computing prediction interval for LS
-q_x101_LS = stats::quantile(x = boot1$x101_LS, probs = c(0.025, 0.975))
+q_x101_LS = stats::quantile(x = result.res.bootstrap$x101_LS, probs = c(0.025, 0.975))
 
 #computing prediction interval for LS
-q_x101_LA = stats::quantile(x = boot1$x101_LA, probs = c(0.025, 0.975))
-
-df_x101 = data.frame(x101_ls = boot1$x101_LS, 
-                     x101_la = boot1$x101_LA, 
-                     q_LS = q_x101_LS, 
-                     q_LA = q_x101_LA)
-
-print(df_x101$q_LS[1:2])
-print(paste0("The 95% prediction interval for LS is ", q_x101_LS[1], " to ", q_x101_LS[2]))
-
-ggplot(data = df_x101) + geom_histogram(aes(x = x101_ls)) + 
-  geom_vline(xintercept = df_x101$q_LS[1], show.legend = TRUE) + 
-  geom_vline(xintercept = df_x101$q_LS[2], show.legend = TRUE ) +
-  guides(color = q_x101_LS)
+q_x101_LA = stats::quantile(x = result.res.bootstrap$x101_LA, probs = c(0.025, 0.975))
 ```
 
+For the LS method the $95\%$ prediction interval for $x_{101}$ is $[`r round(q_x101_LS[1],2)`, `r round(q_x101_LS[2],2)`]$, while for the LA method the interval is $[`r round(q_x101_LA[1],2)`, `r round(q_x101_LA[2],2)`]$. We observe that the LA method prediction interval is longer than the corresponding LS method prediction interval. This might just be due to chance. In Figure \ref{plot_x101} we plot the distribution of the simulated $x_{101}$ samples for both the LS and the LA method.
 
-```{r plot_x101_LA, fig.cap=" \\label{plot_x101_LA} Plot of the $x_{101}$'s simulated by LA. The vertical lines represents the $95\\%$ prediction interval."}
-print(paste0("The 95% prediction interval for LA is ", q_x101_LA[1], " to ", q_x101_LA[2]))
-ggplot(data = df_x101) + geom_histogram(aes(x = x101_la)) + 
-  geom_vline(xintercept = df_x101$q_LA[1], show.legend = TRUE ) + 
-  geom_vline(xintercept = df_x101$q_LA[2], show.legend = TRUE )
+```{r, fig.width = 6, fig.cap=" \\label{plot_x101} Histogram of the $x_{101}$'s simulated by the LA and the LS method. The vertical lines represents the $95\\%$ prediction interval."}
+B = length(result.res.bootstrap$x101_LS)
+df.x101 = data.frame(x101 = c(result.res.bootstrap$x101_LS, result.res.bootstrap$x101_LA), 
+                     q.lower = c(rep(q_x101_LS[1],B), rep(q_x101_LA[1], B)),
+                     q.upper = c(rep(q_x101_LS[2],B), rep(q_x101_LA[2], B)),
+                     method = factor(c(rep("LS", B), rep("LA", B)), levels = c("LS", "LA"))
+)
+
+ggplot(df.x101) + geom_histogram(aes(x = x101), bins = 50) + geom_vline(aes(xintercept = q.lower)) + geom_vline(aes(xintercept = q.upper)) + facet_wrap(~method) +
+  ylab("Count") + xlab(TeX("$x_{101}$")) + ggtitle(TeX("Simulated samples for $x_{101}$ for both methods"))
 ```
 
+\FloatBarrier
 
-The distribution of the $x_{101}$ samples for both teh LS and the LA method is shown in Figure \ref{plot_x101_LS} and \ref{plot_x101_LA}.
 
 
 # Problem B Permutation Test

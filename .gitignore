@@ -49,3 +49,7 @@ CopyOf*
 
 # Log files
 *.log
+
+# cahce and figures
+Exercise-3_files/
+*_files
