@@ -168,6 +168,24 @@ where $\hat{\vect{\beta}}^{*}(\cdot)$ represents the bootstrap mean of the beta 
 # bootstrap resampling algo
 set.seed(2021)
 residual_bootstrap_resampling = function(x, p, B){
+  "Inputs:
+  - x = original time series data, type = vector
+  - p is the degree of the AR(p) model you want to use, type = int
+  - B is the number of bootstrap samples you want, type = int
+  Outputs:
+  - LS = samples using the LS method, type = vector, size = length(x)*B 
+  - LA = samples using the LA method , type = vector, size = length(x)*B 
+  - betas_LS_est = beta estimators using the LS method, type = vector, size = 2*B
+  - betas_LA_est = beta estimators using the LA method, type = vector, size = 2*B
+  - est_var_beta_LS = estimated variance using the estimators from the LS method, type = double
+  - est_var_beta_LA = estimated variance using the estimators from the LA method, type = double
+  - bias_beta_LS = estimated bias using the estimators from the LS method, type = double
+  - bias_beta_LA = estimated bias using the estimators from the LA method, type = double
+  - resiudals_LS = esimated residuals using the LS method, type = vector, size = length(x)*B
+  - resiudals_LA = esimated residuals using the LA method, type = vector, size = length(x)*B 
+  - x101_LS = simulated value of x101 using the data from the LS method, type = double 
+  - x101_LA = simulated value of x101 using the data from the LA method, type = double "
+  
   samples_LS = c()
   samples_LA = c()
   beta_est_LS = c()
@@ -237,8 +255,8 @@ residual_bootstrap_resampling = function(x, p, B){
   return(list(LS = samples_LS, LA = samples_LA,
               betas_LS_est = beta_est_LS,
               betas_LA_est = beta_est_LA,
-              est_sd_beta_LS = hat_SE_B_LS,
-              est_sd_beta_LA = hat_SE_B_LA,
+              est_var_beta_LS = hat_SE_B_LS,
+              est_var_beta_LA = hat_SE_B_LA,
               bias_beta_LS = mean(beta_est_LS) - beta_vec_OG$LS,
               bias_beta_LA = mean(beta_est_LA) - beta_vec_OG$LA,
               resiudals_LS = e_est_LS,
@@ -249,7 +267,7 @@ residual_bootstrap_resampling = function(x, p, B){
 
 #estimating  the variance and bias of the two estimators
 boot1 = residual_bootstrap_resampling(x = data3A$x, p = 2, B = 2000)
-print(paste0("Variance of the betas: LS = ", boot1$est_sd_beta_LS[1]," and LA = ", boot1$est_sd_beta_LA[1]))
+print(paste0("Variance of the betas: LS = ", boot1$est_var_beta_LS[1]," and LA = ", boot1$est_var_beta_LA[1]))
 
 print("Bias of the two estimators:")
 print(boot1$bias_beta_LS[1])
