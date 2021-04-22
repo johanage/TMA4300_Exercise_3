@@ -147,10 +147,10 @@ ggplot(data = df_samples_LA) + geom_point(aes(x = t, y = Value))
 
 ### 1.2 Specifically, estimate the variance and bias of the two estimators.
 
-The two parameters of interest are $\mathbf{\beta}$ and the estimators for the minimisers is $\hat{\mathbf{\beta}}_{LS}$ and $\hat{\mathbf{\beta}}_{LA}$ with respect to the loss functions $Q_{LS}$ and $Q_{LA}$. We want to estimate the variance and the bias of the estimators. This is given by $\mathrm{Var}(\hat{\mathbf{\beta}}_{LS})$ and $\mathrm{Var}(\hat{\mathbf{\beta}}_{LA})$ where we use the plug-in principle for the estimation. The following algorithm for calculating the variance and bias for the estimators in the residual bootstrapping is then given by:
+The two parameters of interest are $\vect{\beta} = [\beta_1, \beta_2]$ and the estimators for the minimisers is $\hat{\vect{\beta}}_{LS} = s_{LS}(\vect x)$ and $\hat{\mathbf{\beta}}_{LA} = s_{LA}(\vect x)$ with respect to the loss functions $Q_{LS}$ and $Q_{LA}$. We want to estimate the variance and the bias of the estimators. This is given by $\mathrm{Var}(\hat{\mathbf{\beta}}_{LS})$ and $\mathrm{Var}(\hat{\mathbf{\beta}}_{LA})$ where we use the plug-in principle for the estimation. The following algorithm for calculating the variance and bias for the estimators in the residual bootstrapping is then given by:
 
-1. Generate $B$ bootstrap samples $x^{1*}, \dots, x^{B*}$.
-2. Evaluate the corresponding parameter estimates: $\hat{\beta}^{*}(b) = s(x^{b*}), b = 1,2, \dots, B$.
+1. Generate $B$ bootstrap samples $\vect x^{1*}, \dots, \vect x^{B*}$.
+2. For each estimator $\hat {\vect \beta} ^* \in \{ \hat {\vect \beta}_{LS}^*, \hat {\vect \beta}_{LA}^* \}$ and corresponding $s \in \{ s_{LS}, s_{LA}\}$, evaluate the corresponding parameter estimates: $\hat{\beta}^{*}(b) = s(x^{b*}), b = 1,2, \dots, B$.
 3. Estimate the variance by:
 
 \begin{equation}
@@ -342,9 +342,14 @@ plot(f1$x, f1$cdf)
 
 # Problem B Permutation Test
 
-In this task we look at data that contain measurements of the concentration of bilirubin (mg/dL) in blood samples taken from three young men. Bilirubin is a breakdown product of haemoglobin, which is a principal component of red blood cells. If the liver has suffered degeneration, if the decomposition of haemoglobin is elevated, or if the gall bladder has been  destroyed, large amounts of bilirubin can accumulate in the blood, leading to jaundice. We will use the F-statistic to perform a Permutation test.
+In this task we look at data that contain measurements of the concentration of bilirubin (mg/dL) in blood samples taken from three young men. Bilirubin is a breakdown product of haemoglobin, which is a principal component of red blood cells. If the liver has suffered degeneration, if the decomposition of haemoglobin is elevated, or if the gall bladder has been  destroyed, large amounts of bilirubin can accumulate in the blood, leading to jaundice. We will use the F-statistic to perform a Permutation test. For testing a hypothesis $\vect \beta = \vect \beta_0$ the F-statistic is defined
 
-?????????????????? Must we say what the F-statistic is defined as?
+\begin{equation*}
+F = \frac{\left( RSS(\beta_0) - RSS(\beta_1)\right) / (p_1 - p_0)}{RSS(\beta_1) / (n - p_1)}
+\end{equation*}
+
+where $RSS(\beta_0)$ is the residual sum of squares for the model under the null hypothesis and $RSS(\beta_1)$ is the residual sum of squares for the model under the alternative hypothesis. Here $n$ is the number of observations and $p_0$ and $p_1$ are the model degrees of freedom under respectively the null hypothesis and the alternative hypothesis.
+
 
 ```{r}
 # Fetching the data
@@ -381,8 +386,6 @@ model.bilirubin <- lm(log(meas)~pers, data=df.bilirubin)
 summary.model.bilurbin = summary.lm(model.bilirubin)
 ```
 
-??????????????????????? Must we comment on or display the estimated beta coefficents?
-
 Next we use the F-test to test the hypothesis $\beta_1 = \beta_2 = \beta_3$.
 
 \begin{align*}
@@ -399,6 +402,22 @@ p.value = pf(Fval[names(Fval) == "value"], Fval[names(Fval) == "numdf"], Fval[na
 ```
 
 The F-statistic is $`r round(Fval[names(Fval) == "value"], 3)`$ with $(`r Fval[names(Fval) == "numdf"]`, `r Fval[names(Fval) == "dendf"]`)$ degrees of freedom. The corresponding p-value is $`r round(p.value,4)`$. As this p-value is lower than our chosen significance level $\alpha = 0.05$ we reject the null hypothesis and conclude that at least one $\beta_i$ is different from the other.
+
+
+```{r, echo=FALSE}
+model.bilirubin <- lm(log(meas)~pers-1, data=df.bilirubin)
+summary.model.bilurbin = summary.lm(model.bilirubin)
+coef = summary.model.bilurbin$coefficients[,1]
+```
+
+Hence we get that 
+\begin{align*}
+\hat \beta_1 &= `r round(coef[1],3)` \\
+\hat \beta_2 &= `r round(coef[2],3)` \\
+\hat \beta_3 &= `r round(coef[3],3)` \\
+\end{align*}
+
+
 
 ## 2)
 
@@ -423,7 +442,6 @@ permTest = function(df) {
 
 In this task we perform a permutation test using the function \textbf{permTest} to generate a sample of size 999 for the F-statistic.
 
-???????????????????????? Must we specify what a permutation test is?
 
 ```{r, fig.width = 6}
 # Function for performing permutation test
@@ -475,6 +493,19 @@ p.value.permutation.test = permutation.test(df.bilirubin, Fval, B = 999)$p.value
 In Figure \ref{fig:histogram} we plot a histogram of the F-statistics computed during the Permutation test, which is an approximation for the density function of the F-statistic under the null hypothesis. From the plot it appears that the F-statistic computed from the original data is a part of the upper tail of the distribution function for the F-statistic under the null hypothesis.
 
 The permutation test gives a p-value of $`r round(p.value.permutation.test,4)`$ for the hypothesis test. We observe that this value is a bit larger than the p-value we computed in Task C1 which was $`r round(p.value,4)`$. The p-value from the permutation test is larger than our chosen significance level $\alpha = 0.05$ and hence we do not reject the null hypothesis.
+
+
+
+```{r, echo=FALSE}
+model.bilirubin.null.hypothesis <- lm(log(meas)~1, data=df.bilirubin)
+summary.model.bilurbin.null.hypothesis = summary.lm(model.bilirubin.null.hypothesis)
+coef.null.hypothesis = summary.model.bilurbin.null.hypothesis$coefficients[,1]
+```
+
+Hence we get that 
+\begin{align*}
+\hat \beta_1 = \hat \beta_2 = \hat \beta_3 = `r round(coef.null.hypothesis,3)`\\
+\end{align*}
 
 
 
@@ -548,9 +579,9 @@ and
 &= \int_0^{z_i} y_i P \left( y_i | y_i \leq z_i, \lambda_1^{(t)}\right) dy_i \\
 &=\int_0^{z_i} y_i \frac{P \left( y_i \cap y_i \leq z_i | \lambda_1^{(t)} \right) }
 {P \left( y_i \leq z_i | \lambda_1^{(t)} \right) } dy_i \\
-&= \int_0^{z_i} y_i \frac{f(y_i | \lambda_1^{(t)}) I(y_i \leq z_i)}{ \int_0^{z_i} f(y_i^* | \lambda_1^{(t)}) dy_i^*} dy_i) \\
+&= \int_0^{z_i} y_i \frac{f(y_i | \lambda_1^{(t)}) I(y_i \leq z_i)}{ \int_0^{z_i} f(y_i^* | \lambda_1^{(t)}) dy_i^*} dy_i \\
 &= \frac{1}{ \int_0^{z_i} \lambda_1^{(t)} e^{-\lambda_1^{(t)} y_i^* } dy_i^*}
-\int_0^{z_i} y_i \lambda_1^{(t)} e^{-\lambda_1^{(t)} y_i} dy_i) \\
+\int_0^{z_i} y_i \lambda_1^{(t)} e^{-\lambda_1^{(t)} y_i} dy_i \\
 &= \frac{1}{1 - e^{- \lambda_1^{(t)} z_i}} 
 \left( 
 -z_i e^{- \lambda_1^{(t)} z_i} - \frac{1}{\lambda_1^{(t)}} e^{- \lambda_1^{(t)} z_i} + \frac{1}{\lambda_1^{(t)}}
@@ -566,9 +597,9 @@ Correspondlingly, we have for the $u_i = 0$ that
 &= \int_0^{z_i} x_i P \left( x_i | x_i \leq z_i, \lambda_0^{(t)}\right) dx_i \\
 &=\int_0^{z_i} x_i \frac{P \left( x_i \cap x_i \leq z_i | \lambda_0^{(t)} \right) }
 {P \left( x_i \leq z_i | \lambda_0^{(t)} \right) } dx_i \\
-&= \int_0^{z_i} x_i \frac{f(x_i | \lambda_0^{(t)})}{ \int_0^{z_i} f(x_i^* | \lambda_0^{(t)}) dx_i^*} dx_i) \\
+&= \int_0^{z_i} x_i \frac{f(x_i | \lambda_0^{(t)})}{ \int_0^{z_i} f(x_i^* | \lambda_0^{(t)}) dx_i^*} dx_i \\
 &= \frac{1}{ \int_0^{z_i} \lambda_0^{(t)} e^{-\lambda_0^{(t)} x_i^* } dx_i^*}
-\int_0^{z_i} x_i \lambda_0^{(t)} e^{-\lambda_0^{(t)} x_i} dx_i) \\
+\int_0^{z_i} x_i \lambda_0^{(t)} e^{-\lambda_0^{(t)} x_i} dx_i \\
 &= \frac{1}{1 - e^{- \lambda_0^{(t)} z_i}} 
 \left( 
 -z_i e^{- \lambda_0^{(t)} z_i} - \frac{1}{\lambda_0^{(t)}} e^{- \lambda_0^{(t)} z_i} + \frac{1}{\lambda_0^{(t)}}
@@ -762,14 +793,12 @@ Additionally, we can calculate an estimate for the biases of $\hat \lambda_0$ an
   \end{split}
 \end{equation}
 
-An improved bias estimate can also be calculated, but requires more complex notation to properly explain. Let $F$ be the cumulative distribution function that we assume $(\vect z, \vect u)$ is sampled from and let $\theta = (\lambda_0, \lambda_1) = T(F)$ be a functional of $F$. We let $\hat F$ be the empirical distribution function of the observed data $(\vect z, \vect u)$ and $\hat F^{b*}, \; b = 1, \dots, B$ be the empirical distribution functon of the corresponding bootstrap sample $(\vect z^{b*}, \vect u^{b*})$. The statistical function of bias can be written as $R((\vect Z, \vect U), F) = T(\hat F) - T(F)$. The bias estimate in Equation (\ref{eq:bias}) was derived as $\frac{1}{B} \sum_{b=1}^B \left( T(\hat F^{b*}) - T(\hat F) \right)$. According to \cite{} an improved bias estimate is
+An improved bias estimate can also be calculated, but requires more complex notation to properly explain. Let $F$ be the cumulative distribution function that we assume $(\vect z, \vect u)$ is sampled from and let $\theta = (\lambda_0, \lambda_1) = T(F)$ be a functional of $F$. We let $\hat F$ be the empirical distribution function of the observed data $(\vect z, \vect u)$ and $\hat F^{b*}, \; b = 1, \dots, B$ be the empirical distribution functon of the corresponding bootstrap sample $(\vect z^{b*}, \vect u^{b*})$. The statistical function of bias can be written as $R((\vect Z, \vect U), F) = T(\hat F) - T(F)$. The bias estimate in Equation (\ref{eq:bias}) was derived as $\frac{1}{B} \sum_{b=1}^B \left( T(\hat F^{b*}) - T(\hat F) \right)$. According to the book \textit{Computational Statistics, 2nd edition (2013)} by G.H. Givens and J.A. Hoeting an improved bias estimate is
 
 \begin{equation*}
  \widehat {\bias}_{B, \textrm{improved}}[\hat \lambda_0, \hat \lambda_1] = \hat {R}((\vect Z, \vect U), F) = \frac{1}{B} \sum_{b=1}^B \left( T(\hat F^{b*}) - T(\hat \bar F^*) \right)
  = \bar \theta^* - T(\bar F^*)
 \end{equation*}
-
-??????????????????????? Should I use widehat over whole R expression?
 
 where
 
@@ -1043,7 +1072,6 @@ where $H$ is the observed Fisher matrix
 H(\vect \lambda) = - \frac{\partial^2}{\partial \vect \lambda \partial \vect \lambda^T} l(\vect \lambda | \vect z, \vect u)
 \end{equation*}
 
-?????????????? Must we talk about or use expected Fisher matrix?
 
 Below we optimize the log likelihood function $l(\lambda_0, \lambda_1 | \vect z, \vect u)$ and use that $H(\vect \lambda) \approx H(\hat {\vect \lambda})$ to estimate standard deviations and correlations between the estimators $(\hat \lambda_0, \hat \lambda_1)$.
 
