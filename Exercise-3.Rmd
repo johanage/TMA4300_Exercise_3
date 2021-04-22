@@ -142,7 +142,7 @@ x1x2_sample1 = sample_consecutive(x = data3A$x)
 ```
 
 
-```{r, fig.height=3, fig.width=4, fig.cap=" \\label{LS_resampling} Plot of the samples generated from the LS resampling."}
+```{r, fig.height=3, fig.width=4, fig.cap=" \\label{LS_resampling} Plot of a random bootstrapped time series using the LS model."}
 # do a resampling using the LS residuals and plot the samples
 calc_x_LS = ARp.filter(x0 = x1x2_sample1, 
                        beta = minisers_ar2$LS, 
@@ -151,7 +151,7 @@ df_samples_LS = data.frame(t = seq(1,100), Value = calc_x_LS)
 ggplot(data = df_samples_LS) + geom_point(aes(x = t, y = Value))
 ```
 
-```{r, fig.height=3, fig.width=4, fig.cap=" \\label{LA_resampling} Plot of the samples generated from the LA resampling."}
+```{r, fig.height=3, fig.width=4, fig.cap=" \\label{LA_resampling} Plot of a random bootstrapped time series using the LS model."}
 # do a resampling using the LA residuals and plot the samples
 calc_x_LA = ARp.filter(x0 = x1x2_sample1, 
                        beta = minisers_ar2$LA, 
