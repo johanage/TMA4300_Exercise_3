@@ -301,6 +301,8 @@ permTest = function(df) {
 
 In this task we perform a permutation test using the function \textbf{permTest} to generate a sample of size 999 for the F-statistic.
 
+???????????????????????? Must we specify what a permutation test is?
+
 ```{r, fig.width = 6}
 # Function for performing permutation test
 permutation.test = function(df, Fval, B = 999, plot.hist = TRUE) {
@@ -383,9 +385,9 @@ The likelihood function for the complete data $(\vect x, \vect y)$ is
 
 \begin{align*}
   L(\lambda_0, \lambda_1 | \vect x, \vect y) 
-  &= f(\vect x, \vect y | \lambda_0, \lambda_1) \\
-  &= f(\vect x | \lambda_0) f(\vect y | \lambda_1) \\
-  &= \left [ \prod_{i=1}^n f(x_i | \lambda_0) \right ] \left [ \prod_{i=1}^n f(y_i | \lambda_1) \right ]
+  &= f_{\vect X, \vect Y}(\vect x, \vect y | \lambda_0, \lambda_1) \\
+  &= f_{\vect X}(\vect x | \lambda_0) f_{\vect Y}(\vect y | \lambda_1) \\
+  &= \left [ \prod_{i=1}^n f_{X_i}(x_i | \lambda_0) \right ] \left [ \prod_{i=1}^n f_{Y_i}(y_i | \lambda_1) \right ] \\
   &= \left [ \prod_{i=1}^n \lambda_0 e^{- \lambda_0 x_i} \right ]
   \left [ \prod_{i=1}^n \lambda_1 e^{- \lambda_1 y_i} \right ] \\
   &= \lambda_0^n e^{-\lambda_0 \sum_{i=1}^n x_i} \lambda_1^n e^{-\lambda_1 \sum_{i=1}^n y_i}.
@@ -400,12 +402,12 @@ l(\lambda_0, \lambda_1 | \vect x, \vect y) &= \ln \left( L(\lambda_0, \lambda_1 
 \end{split}
 \end{equation*}
 
-Using this we want to find the expectation of the log likelihood function for the complete data condtional on the observed data $(\vect z, \vect u)$ and the estimates for the parameters at iteration $t$, i.e $(\lambda_o^{(t)}, \lambda_1^{(t)})$.
+Using this we want to find the expectation of the log likelihood function for the complete data condtional on the observed data $(\vect z, \vect u)$ and the estimates for the parameters at iteration $t$, i.e $(\lambda_0^{(t)}, \lambda_1^{(t)})$.
 
 \begin{equation} \label{eq:em_formula_incomplete}
 \begin{split}
 \E \left[ l(\lambda_0, \lambda_1 | \vect x, \vect y)  | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}\right]
-&= \E \left[ \ln\left( f(\vect x, \vect y | \lambda_0, \lambda_1) \right) 
+&= \E \left[ \ln\left( f_{\vect X, \vect Y}(\vect x, \vect y | \lambda_0, \lambda_1) \right) 
 | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}  \right] \\
 &= n \left( \ln(\lambda_0) + \ln(\lambda_1) \right) -\lambda_0 \sum_{i=1}^n \E [x_i | z_i, u_i, \lambda_0^{(t)}]  - \lambda_1 \sum_{i=1}^n \E [y_i | z_i, u_i, \lambda_1^{(t)}
 \end{split}
@@ -420,11 +422,11 @@ For the case $u_i = 1$ then we have
 and
 
 \begin{align*}
-\E [y_i | z_i, u_i = 1, \lambda_1^{(t)}
+\E \left[y_i | z_i, u_i = 1, \lambda_1^{(t)} \right]
 &= \int_0^{z_i} y_i P \left( y_i | y_i \leq z_i, \lambda_1^{(t)}\right) dy_i \\
 &=\int_0^{z_i} y_i \frac{P \left( y_i \cap y_i \leq z_i | \lambda_1^{(t)} \right) }
 {P \left( y_i \leq z_i | \lambda_1^{(t)} \right) } dy_i \\
-&= \int_0^{z_i} y_i \frac{f(y_i | \lambda_1^{(t)})}{ \int_0^{z_i} f(y_i^* | \lambda_1^{(t)}) dy_i^*} dy_i) \\
+&= \int_0^{z_i} y_i \frac{f(y_i | \lambda_1^{(t)}) I(y_i \leq z_i)}{ \int_0^{z_i} f(y_i^* | \lambda_1^{(t)}) dy_i^*} dy_i) \\
 &= \frac{1}{ \int_0^{z_i} \lambda_1^{(t)} e^{-\lambda_1^{(t)} y_i^* } dy_i^*}
 \int_0^{z_i} y_i \lambda_1^{(t)} e^{-\lambda_1^{(t)} y_i} dy_i) \\
 &= \frac{1}{1 - e^{- \lambda_1^{(t)} z_i}} 
@@ -438,7 +440,7 @@ and
 Correspondlingly, we have for the $u_i = 0$ that
 
 \begin{align*}
-\E [x_i | z_i, u_i = 0, \lambda_0^{(t)}
+\E \left[ x_i | z_i, u_i = 0, \lambda_0^{(t)} \right]
 &= \int_0^{z_i} x_i P \left( x_i | x_i \leq z_i, \lambda_0^{(t)}\right) dx_i \\
 &=\int_0^{z_i} x_i \frac{P \left( x_i \cap x_i \leq z_i | \lambda_0^{(t)} \right) }
 {P \left( x_i \leq z_i | \lambda_0^{(t)} \right) } dx_i \\
