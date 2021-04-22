@@ -96,7 +96,29 @@ x_2 & x_3 & x_4 & \dots & x_{100}.
 \end{pmatrix}
 \end{equation}
 
-The rest of each bo is then done by initializing $x_3$ by using a pair of values $x_1$ and $x_2$ which is given from the randomly picked consecutive subsequence from the original data. Then we will iteratively compute the next $x_t$ following the AR(2) scheme. This is done by the function \textbf{ARp.filter()}.
+The rest of each bootstrapped time series is then computed iteratively by the AR(2) scheme in Equation (\ref{AR2}) and resampling with replacement from the residuals computed from the original time series. This is done for both methods LA and LS. We do this using the given function \textbf{ARp.filter}.
+
+To evaluate the performance of the two estimators $\hat {\vect{\beta}}_{LS}$ and $\hat {\vect{\beta}}_{LA}$ we choose to look at the estimates for the variance and the bias of each estimator. We will use our bootstrapped time series to do this. We denote the minimiser function of a general loss function $Q(\vect{x})$ as $s(\vect{x})$. The following algorithm for calculating the variance and bias for the estimators in the residual bootstrapping is then given by
+
+1. Generate $B$ bootstrap samples $\vect{x}^{1*}, \dots, \vect{x}^{B*}$ for both LS and LA method using the estimators $\hat{\vect{\beta}}_{LS}$ and $\hat{\vect{\beta}}_{LA}$.
+2. Evaluate the corresponding parameter estimates both methods: $\hat{\beta}^{*}(b) = s(\vect{x}^{b*}) , b = 1,2, \dots, B$. 
+3. Estimate the variance for both methods by:
+
+\begin{equation}
+\hat{\mathrm{Var}}_B = \frac{ \sum_{b=1}^B \left( \hat{\beta}^{*}(b) - \hat{\beta}^{*}(\cdot) \right)^2 }{B-1},
+\end{equation}
+where:
+\begin{equation}
+\hat{\beta}^{*}(\cdot) \equiv \frac{1}{B}\sum_{b=1}^B \hat{\beta}^{*}(b)
+\end{equation}
+
+4. Calculate bias for both methods by:
+\begin{equation}
+\widehat{\mathrm{Bias}}(\hat{\vect{\beta}}) =  \hat{\vect{\beta}}^{*}(\cdot) - t(\hat{F}),
+\end{equation}
+
+where $\hat{\vect{\beta}}^{*}(\cdot)$ represents the bootstrap mean of the beta estimator of the LS and LA method  and $t(\hat{F})$ is the calculated estimators from the original data.
+
 
 ```{r}
 source("probAhelp.R", local = knitr::knit_global())
@@ -137,29 +159,6 @@ calc_x_LA = ARp.filter(x0 = x1x2_sample1,
 df_samples_LA = data.frame(t = seq(1,100), Value = calc_x_LA)
 ggplot(data = df_samples_LA) + geom_point(aes(x = t, y = Value))
 ```
-
-### 1.2 Specifically, estimate the variance and bias of the two estimators.
-
-The two parameters of interest are $\vect{\beta}$ and the estimators for the minimisers is $\hat{\vect{\beta}}_{LS}$ and $\hat{\vect{\beta}}_{LA}$ with respect to the loss functions $Q_{LS}$ and $Q_{LA}$. We denote the minimiser function of a general loss function $Q(\vect{x})$ as $s(\vect{x})$ calculated by using the original data and $s(\vect{x}^{b*})$ calculated by using the bootstrapped samples $\vect{x}^{b*}$. We want to estimate the variance and the bias of the estimators. This is given by $\mathrm{Var}(\hat{\vect{\beta}}_{LS})$ and $\mathrm{Var}(\hat{\vect{\beta}}_{LA})$ where we use the plug-in principle for the estimation. The following algorithm for calculating the variance and bias for the estimators in the residual bootstrapping is then given by:
-
-1. Generate $B$ bootstrap samples $\vect{x}^{1*}, \dots, \vect{x}^{B*}$ for both LS and LA method using the estimators $\hat{\vect{\beta}}_{LS}$ and $\hat{\vect{\beta}}_{LA}$.
-2. Evaluate the corresponding parameter estimates both methods: $\hat{\beta}^{*}(b) = s(\vect{x}^{b*}) , b = 1,2, \dots, B$. 
-3. Estimate the variance for both methods by:
-
-\begin{equation}
-\hat{\mathrm{Var}}_B = \frac{ \sum_{b=1}^B \left( \hat{\beta}^{*}(b) - \hat{\beta}^{*}(\cdot) \right)^2 }{B-1},
-\end{equation}
-where:
-\begin{equation}
-\hat{\beta}^{*}(\cdot) \equiv \frac{1}{B}\sum_{b=1}^B \hat{\beta}^{*}(b)
-\end{equation}
-
-4. Calculate bias for LS:
-\begin{equation}
-\widehat{\mathrm{Bias}}(\hat{\vect{\beta}}) =  \hat{\vect{\beta}}^{*}(\cdot) - t(\hat{F}),
-\end{equation}
-
-where $\hat{\vect{\beta}}^{*}(\cdot)$ represents the bootstrap mean of the beta estimator of the LS and LA method  and $t(\hat{F})$ is the calculated estimators from the original data.
 
 ```{r}
 # bootstrap resampling algo
