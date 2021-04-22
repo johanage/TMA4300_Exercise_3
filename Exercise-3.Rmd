@@ -55,7 +55,6 @@ library(tidyverse)
 
 ## Comparing AR(2) parameter estimators using resampling of residuals
 
-<<<<<<< HEAD
 In this problem we are going to analyze the non-Gaussian time-series data in `data3A$x`. The data contains a sequence of length $T = 100$. The target is to compare two different estimators. A plot of the data is given in Figure \ref{fig:plot_OG}.
 
 ```{r plot_OG, fig.height=3, fig.width=4, fig.cap=" \\label{fig:plot_OG} Plot of the non-Gaussian time series."}
@@ -65,8 +64,6 @@ ggplot(data = df_OG_data, aes(x = t, y = Value)) + geom_point()
 ```
 
 
-In this problem we are going to analyze the non-Gaussian time-series data in `data3A\$x`. The data contains a subsequence of length $T = 100$. The target is to compare two different estimators. A plot of the data is given in Figure \ref{fig:plot_OG}.
-
 
 To model the time series data we consider an AR(2) model:
 
@@ -74,36 +71,34 @@ To model the time series data we consider an AR(2) model:
 x_t = \beta_1 x_{t-1} + \beta_2 x_{t-2} + e_t,
 \end{equation}
 
-where $e_t$ are iid with zero mean and constant variance. We are going to use the the least sum of squared residuals (LS) and least sum of absolute residuals (LA) to compute the two estimators of the parameters of the residuals we want to compare. The estimator we want to focus on is the minimisers of the LS and LA. The minimisers are obtained by minimising the following loss functions with respect to $\vect{\beta}$:
+where $e_t$ are iid with zero mean and constant variance. We are going to use the the least sum of squared residuals (LS) and least sum of absolute residuals (LA) to compute two different estimators for the parameters of interest $\vect \beta = [\beta_1, \beta_2]$. The estimators $\hat {\vect \beta}_{LS}$ and $\hat {\vect \beta}_{LA}$ are obtained by respectively minimising the loss functions $Q_{LS}$ and $Q_{LA}$ with respect to $\vect{\beta}$. The loss functions $Q_{LS}$ and $Q_{LA}$ are defined as
 
 \begin{align}
 Q_{LS} (\mathbf{x}) = \sum_{t=3}^{T} ( x_t - \beta_1 x_{t-1} - \beta_2 x_{t-2} )^2\\
-Q_{LA} (\mathbf{x}) = \sum_{t=3}^{T} |x_t - \beta_1 x_{t-1} - \beta_2 x_{t-2}|
+Q_{LA} (\mathbf{x}) = \sum_{t=3}^{T} |x_t - \beta_1 x_{t-1} - \beta_2 x_{t-2}|.
 \end{align}
 
-We denote the minimisers by $\vect{\beta}_{LS}$ and $\vect{\beta}_{LA}$ (calculated by the script \textbf{ARp.beta.est}). We then define the estimated residuals to be:
+The minimisers $\vect{\beta}_{LS}$ and $\vect{\beta}_{LA}$ are calculated by the given function \textbf{ARp.beta.est}. We then define the estimated residuals to be:
 
 \begin{equation}\label{estimated_residuals}
 \hat{e}_t = x_t -\hat{\beta}_1x_{t-1} -\hat{\beta}_2 x_{t-2}
 \end{equation}
 
 for $t = 3, . . . , T$, and let $\bar{e}$ be the mean of these. The $\hat{e}_t$ can be re-centered
-to have mean zero by defining $\hat{\epsilon}_t = \hat{e}_t -\bar{e}$. (Results for $\hat{\epsilon}_t$ obtained by LS and LA is calculated with \textbf{ARp.resid}).
+to have mean zero by defining $\hat{\epsilon}_t = \hat{e}_t -\bar{e}$. The re-cented residuals $\hat{\epsilon}_t$ can be directly obtained from given function \textbf{ARp.resid} for both methods LS and LA.
 
-## A.1
+## 1)
 
-### 1.1 Use the residual resampling bootstrap method to evaluate the relative performance of the two parameter estimators.
-
-In order to do the resampling we pick a random consecutive pair from the original data to initialize the resampling. In this case where $\mathbf{x} = \{x_1, \dots, x_{100} \}$ we pick randomly from all possible pairs is given by:
+In this task we use residual resampling bootstrap method to evaluate the relative performance of the two parameter estimators. In order to create new bootstrapped time series we pick a random consecutive pair from the original data to initialize each new bootstrap time series. In this case where $\mathbf{x} = \{x_1, \dots, x_{100} \}$ we pick randomly from all possible pairs
 
 \begin{equation}\label{all_possible_consecutive_pairs}
 \begin{pmatrix}
 x_1 & x_2 & x_3 & \dots & x_{99}\\
-x_2 & x_3 & x_4 & \dots & x_{100}
+x_2 & x_3 & x_4 & \dots & x_{100}.
 \end{pmatrix}
 \end{equation}
 
-The resampling is then done by initializing $x_3$ by using a pair of values $x_1$ and $x_2$ which is given from the randomly picked consecutive subsequence from the original data. Then we will iteratively compute the next $x_t$ following the AR(2) scheme. This is done by the function \textbf{ARp.filter()}.
+The rest of each bo is then done by initializing $x_3$ by using a pair of values $x_1$ and $x_2$ which is given from the randomly picked consecutive subsequence from the original data. Then we will iteratively compute the next $x_t$ following the AR(2) scheme. This is done by the function \textbf{ARp.filter()}.
 
 ```{r}
 source("probAhelp.R", local = knitr::knit_global())
