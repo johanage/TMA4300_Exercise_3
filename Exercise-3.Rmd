@@ -55,13 +55,21 @@ library(tidyverse)
 
 ## Comparing AR(2) parameter estimators using resampling of residuals
 
+<<<<<<< HEAD
 In this problem we are going to analyze the non-Gaussian time-series data in `data3A$x`. The data contains a sequence of length $T = 100$. The target is to compare two different estimators. A plot of the data is given in Figure \ref{fig:plot_OG}.
 
 ```{r plot_OG, fig.height=3, fig.width=4, fig.cap=" \\label{fig:plot_OG} Plot of the non-Gaussian time series."}
+=======
+```{r plot_OG, fig.height=3, fig.width=4, fig.cap="\\label{fig:plot_OG} Plot of the non-Gaussian time series."}
+>>>>>>> d7c802eae39e4ebdef7400ea4c3b8b6bb87a3560
 source("probAdata.R")
 df_OG_data = data.frame(t = seq(1, 100), Value = data3A$x)
 ggplot(data = df_OG_data, aes(x = t, y = Value)) + geom_point()
 ```
+
+
+In this problem we are going to analyze the non-Gaussian time-series data in `data3A\$x`. The data contains a subsequence of length $T = 100$. The target is to compare two different estimators. A plot of the data is given in Figure \ref{fig:plot_OG}.
+
 
 To model the time series data we consider an AR(2) model:
 
@@ -142,11 +150,19 @@ ggplot(data = df_samples_LA) + geom_point(aes(x = t, y = Value))
 
 ### 1.2 Specifically, estimate the variance and bias of the two estimators.
 
+<<<<<<< HEAD
 The two parameters of interest are $\vect{\beta}$ and the estimators for the minimisers is $\hat{\vect{\beta}}_{LS}$ and $\hat{\vect{\beta}}_{LA}$ with respect to the loss functions $Q_{LS}$ and $Q_{LA}$. We denote the minimiser function of a general loss function $Q(\vect{x})$ as $s(\vect{x})$ calculated by using the original data and $s(\vect{x}^{b*})$ calculated by using the bootstrapped samples $\vect{x}^{b*}$. We want to estimate the variance and the bias of the estimators. This is given by $\mathrm{Var}(\hat{\vect{\beta}}_{LS})$ and $\mathrm{Var}(\hat{\vect{\beta}}_{LA})$ where we use the plug-in principle for the estimation. The following algorithm for calculating the variance and bias for the estimators in the residual bootstrapping is then given by:
 
 1. Generate $B$ bootstrap samples $\vect{x}^{1*}, \dots, \vect{x}^{B*}$ for both LS and LA method using the estimators $\hat{\vect{\beta}}_{LS}$ and $\hat{\vect{\beta}}_{LA}$.
 2. Evaluate the corresponding parameter estimates both methods: $\hat{\beta}^{*}(b) = s(\vect{x}^{b*}) , b = 1,2, \dots, B$. 
 3. Estimate the variance for both methods by:
+=======
+The two parameters of interest are $\vect{\beta} = [\beta_1, \beta_2]$ and the estimators for the minimisers is $\hat{\vect{\beta}}_{LS} = s_{LS}(\vect x)$ and $\hat{\mathbf{\beta}}_{LA} = s_{LA}(\vect x)$ with respect to the loss functions $Q_{LS}$ and $Q_{LA}$. We want to estimate the variance and the bias of the estimators. This is given by $\mathrm{Var}(\hat{\mathbf{\beta}}_{LS})$ and $\mathrm{Var}(\hat{\mathbf{\beta}}_{LA})$ where we use the plug-in principle for the estimation. The following algorithm for calculating the variance and bias for the estimators in the residual bootstrapping is then given by:
+
+1. Generate $B$ bootstrap samples $\vect x^{1*}, \dots, \vect x^{B*}$.
+2. For each estimator $\hat {\vect \beta} ^* \in \{ \hat {\vect \beta}_{LS}^*, \hat {\vect \beta}_{LA}^* \}$ and corresponding $s \in \{ s_{LS}, s_{LA}\}$, evaluate the corresponding parameter estimates: $\hat{\beta}^{*}(b) = s(x^{b*}), b = 1,2, \dots, B$.
+3. Estimate the variance by:
+>>>>>>> d7c802eae39e4ebdef7400ea4c3b8b6bb87a3560
 
 \begin{equation}
 \hat{\mathrm{Var}}_B = \frac{ \sum_{b=1}^B \left( \hat{\beta}^{*}(b) - \hat{\beta}^{*}(\cdot) \right)^2 }{B-1},
@@ -308,9 +324,14 @@ The distribution of the $x_{101}$ samples for both teh LS and the LA method is s
 
 # Problem B Permutation Test
 
-In this task we look at data that contain measurements of the concentration of bilirubin (mg/dL) in blood samples taken from three young men. Bilirubin is a breakdown product of haemoglobin, which is a principal component of red blood cells. If the liver has suffered degeneration, if the decomposition of haemoglobin is elevated, or if the gall bladder has been  destroyed, large amounts of bilirubin can accumulate in the blood, leading to jaundice. We will use the F-statistic to perform a Permutation test.
+In this task we look at data that contain measurements of the concentration of bilirubin (mg/dL) in blood samples taken from three young men. Bilirubin is a breakdown product of haemoglobin, which is a principal component of red blood cells. If the liver has suffered degeneration, if the decomposition of haemoglobin is elevated, or if the gall bladder has been  destroyed, large amounts of bilirubin can accumulate in the blood, leading to jaundice. We will use the F-statistic to perform a Permutation test. For testing a hypothesis $\vect \beta = \vect \beta_0$ the F-statistic is defined
 
-?????????????????? Must we say what the F-statistic is defined as?
+\begin{equation*}
+F = \frac{\left( RSS(\beta_0) - RSS(\beta_1)\right) / (p_1 - p_0)}{RSS(\beta_1) / (n - p_1)}
+\end{equation*}
+
+where $RSS(\beta_0)$ is the residual sum of squares for the model under the null hypothesis and $RSS(\beta_1)$ is the residual sum of squares for the model under the alternative hypothesis. Here $n$ is the number of observations and $p_0$ and $p_1$ are the model degrees of freedom under respectively the null hypothesis and the alternative hypothesis.
+
 
 ```{r}
 # Fetching the data
@@ -347,8 +368,6 @@ model.bilirubin <- lm(log(meas)~pers, data=df.bilirubin)
 summary.model.bilurbin = summary.lm(model.bilirubin)
 ```
 
-??????????????????????? Must we comment on or display the estimated beta coefficents?
-
 Next we use the F-test to test the hypothesis $\beta_1 = \beta_2 = \beta_3$.
 
 \begin{align*}
@@ -365,6 +384,22 @@ p.value = pf(Fval[names(Fval) == "value"], Fval[names(Fval) == "numdf"], Fval[na
 ```
 
 The F-statistic is $`r round(Fval[names(Fval) == "value"], 3)`$ with $(`r Fval[names(Fval) == "numdf"]`, `r Fval[names(Fval) == "dendf"]`)$ degrees of freedom. The corresponding p-value is $`r round(p.value,4)`$. As this p-value is lower than our chosen significance level $\alpha = 0.05$ we reject the null hypothesis and conclude that at least one $\beta_i$ is different from the other.
+
+
+```{r, echo=FALSE}
+model.bilirubin <- lm(log(meas)~pers-1, data=df.bilirubin)
+summary.model.bilurbin = summary.lm(model.bilirubin)
+coef = summary.model.bilurbin$coefficients[,1]
+```
+
+Hence we get that 
+\begin{align*}
+\hat \beta_1 &= `r round(coef[1],3)` \\
+\hat \beta_2 &= `r round(coef[2],3)` \\
+\hat \beta_3 &= `r round(coef[3],3)` \\
+\end{align*}
+
+
 
 ## 2)
 
@@ -388,6 +423,7 @@ permTest = function(df) {
 ## 3)
 
 In this task we perform a permutation test using the function \textbf{permTest} to generate a sample of size 999 for the F-statistic.
+
 
 ```{r, fig.width = 6}
 # Function for performing permutation test
@@ -442,6 +478,19 @@ The permutation test gives a p-value of $`r round(p.value.permutation.test,4)`$ 
 
 
 
+```{r, echo=FALSE}
+model.bilirubin.null.hypothesis <- lm(log(meas)~1, data=df.bilirubin)
+summary.model.bilurbin.null.hypothesis = summary.lm(model.bilirubin.null.hypothesis)
+coef.null.hypothesis = summary.model.bilurbin.null.hypothesis$coefficients[,1]
+```
+
+Hence we get that 
+\begin{align*}
+\hat \beta_1 = \hat \beta_2 = \hat \beta_3 = `r round(coef.null.hypothesis,3)`\\
+\end{align*}
+
+
+
 # Problem C
 
 
@@ -471,9 +520,9 @@ The likelihood function for the complete data $(\vect x, \vect y)$ is
 
 \begin{align*}
   L(\lambda_0, \lambda_1 | \vect x, \vect y) 
-  &= f(\vect x, \vect y | \lambda_0, \lambda_1) \\
-  &= f(\vect x | \lambda_0) f(\vect y | \lambda_1) \\
-  &= \left [ \prod_{i=1}^n f(x_i | \lambda_0) \right ] \left [ \prod_{i=1}^n f(y_i | \lambda_1) \right ]
+  &= f_{\vect X, \vect Y}(\vect x, \vect y | \lambda_0, \lambda_1) \\
+  &= f_{\vect X}(\vect x | \lambda_0) f_{\vect Y}(\vect y | \lambda_1) \\
+  &= \left [ \prod_{i=1}^n f_{X_i}(x_i | \lambda_0) \right ] \left [ \prod_{i=1}^n f_{Y_i}(y_i | \lambda_1) \right ] \\
   &= \left [ \prod_{i=1}^n \lambda_0 e^{- \lambda_0 x_i} \right ]
   \left [ \prod_{i=1}^n \lambda_1 e^{- \lambda_1 y_i} \right ] \\
   &= \lambda_0^n e^{-\lambda_0 \sum_{i=1}^n x_i} \lambda_1^n e^{-\lambda_1 \sum_{i=1}^n y_i}.
@@ -488,12 +537,12 @@ l(\lambda_0, \lambda_1 | \vect x, \vect y) &= \ln \left( L(\lambda_0, \lambda_1 
 \end{split}
 \end{equation*}
 
-Using this we want to find the expectation of the log likelihood function for the complete data condtional on the observed data $(\vect z, \vect u)$ and the estimates for the parameters at iteration $t$, i.e $(\lambda_o^{(t)}, \lambda_1^{(t)})$.
+Using this we want to find the expectation of the log likelihood function for the complete data condtional on the observed data $(\vect z, \vect u)$ and the estimates for the parameters at iteration $t$, i.e $(\lambda_0^{(t)}, \lambda_1^{(t)})$.
 
 \begin{equation} \label{eq:em_formula_incomplete}
 \begin{split}
 \E \left[ l(\lambda_0, \lambda_1 | \vect x, \vect y)  | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}\right]
-&= \E \left[ \ln\left( f(\vect x, \vect y | \lambda_0, \lambda_1) \right) 
+&= \E \left[ \ln\left( f_{\vect X, \vect Y}(\vect x, \vect y | \lambda_0, \lambda_1) \right) 
 | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}  \right] \\
 &= n \left( \ln(\lambda_0) + \ln(\lambda_1) \right) -\lambda_0 \sum_{i=1}^n \E [x_i | z_i, u_i, \lambda_0^{(t)}]  - \lambda_1 \sum_{i=1}^n \E [y_i | z_i, u_i, \lambda_1^{(t)}
 \end{split}
@@ -508,13 +557,13 @@ For the case $u_i = 1$ then we have
 and
 
 \begin{align*}
-\E [y_i | z_i, u_i = 1, \lambda_1^{(t)}
+\E \left[y_i | z_i, u_i = 1, \lambda_1^{(t)} \right]
 &= \int_0^{z_i} y_i P \left( y_i | y_i \leq z_i, \lambda_1^{(t)}\right) dy_i \\
 &=\int_0^{z_i} y_i \frac{P \left( y_i \cap y_i \leq z_i | \lambda_1^{(t)} \right) }
 {P \left( y_i \leq z_i | \lambda_1^{(t)} \right) } dy_i \\
-&= \int_0^{z_i} y_i \frac{f(y_i | \lambda_1^{(t)})}{ \int_0^{z_i} f(y_i^* | \lambda_1^{(t)}) dy_i^*} dy_i) \\
+&= \int_0^{z_i} y_i \frac{f(y_i | \lambda_1^{(t)}) I(y_i \leq z_i)}{ \int_0^{z_i} f(y_i^* | \lambda_1^{(t)}) dy_i^*} dy_i \\
 &= \frac{1}{ \int_0^{z_i} \lambda_1^{(t)} e^{-\lambda_1^{(t)} y_i^* } dy_i^*}
-\int_0^{z_i} y_i \lambda_1^{(t)} e^{-\lambda_1^{(t)} y_i} dy_i) \\
+\int_0^{z_i} y_i \lambda_1^{(t)} e^{-\lambda_1^{(t)} y_i} dy_i \\
 &= \frac{1}{1 - e^{- \lambda_1^{(t)} z_i}} 
 \left( 
 -z_i e^{- \lambda_1^{(t)} z_i} - \frac{1}{\lambda_1^{(t)}} e^{- \lambda_1^{(t)} z_i} + \frac{1}{\lambda_1^{(t)}}
@@ -526,13 +575,13 @@ and
 Correspondlingly, we have for the $u_i = 0$ that
 
 \begin{align*}
-\E [x_i | z_i, u_i = 0, \lambda_0^{(t)}
+\E \left[ x_i | z_i, u_i = 0, \lambda_0^{(t)} \right]
 &= \int_0^{z_i} x_i P \left( x_i | x_i \leq z_i, \lambda_0^{(t)}\right) dx_i \\
 &=\int_0^{z_i} x_i \frac{P \left( x_i \cap x_i \leq z_i | \lambda_0^{(t)} \right) }
 {P \left( x_i \leq z_i | \lambda_0^{(t)} \right) } dx_i \\
-&= \int_0^{z_i} x_i \frac{f(x_i | \lambda_0^{(t)})}{ \int_0^{z_i} f(x_i^* | \lambda_0^{(t)}) dx_i^*} dx_i) \\
+&= \int_0^{z_i} x_i \frac{f(x_i | \lambda_0^{(t)})}{ \int_0^{z_i} f(x_i^* | \lambda_0^{(t)}) dx_i^*} dx_i \\
 &= \frac{1}{ \int_0^{z_i} \lambda_0^{(t)} e^{-\lambda_0^{(t)} x_i^* } dx_i^*}
-\int_0^{z_i} x_i \lambda_0^{(t)} e^{-\lambda_0^{(t)} x_i} dx_i) \\
+\int_0^{z_i} x_i \lambda_0^{(t)} e^{-\lambda_0^{(t)} x_i} dx_i \\
 &= \frac{1}{1 - e^{- \lambda_0^{(t)} z_i}} 
 \left( 
 -z_i e^{- \lambda_0^{(t)} z_i} - \frac{1}{\lambda_0^{(t)}} e^{- \lambda_0^{(t)} z_i} + \frac{1}{\lambda_0^{(t)}}
@@ -726,14 +775,12 @@ Additionally, we can calculate an estimate for the biases of $\hat \lambda_0$ an
   \end{split}
 \end{equation}
 
-An improved bias estimate can also be calculated, but requires more complex notation to properly explain. Let $F$ be the cumulative distribution function that we assume $(\vect z, \vect u)$ is sampled from and let $\theta = (\lambda_0, \lambda_1) = T(F)$ be a functional of $F$. We let $\hat F$ be the empirical distribution function of the observed data $(\vect z, \vect u)$ and $\hat F^{b*}, \; b = 1, \dots, B$ be the empirical distribution functon of the corresponding bootstrap sample $(\vect z^{b*}, \vect u^{b*})$. The statistical function of bias can be written as $R((\vect Z, \vect U), F) = T(\hat F) - T(F)$. The bias estimate in Equation (\ref{eq:bias}) was derived as $\frac{1}{B} \sum_{b=1}^B \left( T(\hat F^{b*}) - T(\hat F) \right)$. According to \cite{} an improved bias estimate is
+An improved bias estimate can also be calculated, but requires more complex notation to properly explain. Let $F$ be the cumulative distribution function that we assume $(\vect z, \vect u)$ is sampled from and let $\theta = (\lambda_0, \lambda_1) = T(F)$ be a functional of $F$. We let $\hat F$ be the empirical distribution function of the observed data $(\vect z, \vect u)$ and $\hat F^{b*}, \; b = 1, \dots, B$ be the empirical distribution functon of the corresponding bootstrap sample $(\vect z^{b*}, \vect u^{b*})$. The statistical function of bias can be written as $R((\vect Z, \vect U), F) = T(\hat F) - T(F)$. The bias estimate in Equation (\ref{eq:bias}) was derived as $\frac{1}{B} \sum_{b=1}^B \left( T(\hat F^{b*}) - T(\hat F) \right)$. According to the book \textit{Computational Statistics, 2nd edition (2013)} by G.H. Givens and J.A. Hoeting an improved bias estimate is
 
 \begin{equation*}
  \widehat {\bias}_{B, \textrm{improved}}[\hat \lambda_0, \hat \lambda_1] = \hat {R}((\vect Z, \vect U), F) = \frac{1}{B} \sum_{b=1}^B \left( T(\hat F^{b*}) - T(\hat \bar F^*) \right)
  = \bar \theta^* - T(\bar F^*)
 \end{equation*}
-
-??????????????????????? Should I use widehat over whole R expression?
 
 where
 
@@ -1007,7 +1054,6 @@ where $H$ is the observed Fisher matrix
 H(\vect \lambda) = - \frac{\partial^2}{\partial \vect \lambda \partial \vect \lambda^T} l(\vect \lambda | \vect z, \vect u)
 \end{equation*}
 
-?????????????? Must we talk about or use expected Fisher matrix?
 
 Below we optimize the log likelihood function $l(\lambda_0, \lambda_1 | \vect z, \vect u)$ and use that $H(\vect \lambda) \approx H(\hat {\vect \lambda})$ to estimate standard deviations and correlations between the estimators $(\hat \lambda_0, \hat \lambda_1)$.
 
