@@ -169,7 +169,9 @@ To evaluate the performance of the two estimators $\hat {\vect{\beta}}_{LS}$ and
 \widehat{\mathrm{Var}}[\hat \beta_1] &= \frac{ \sum_{b=1}^B \left( \hat{\beta}_1^{*b} - \bar{\beta}_1^{*} \right)^2 }{B-1} \\
 \widehat{\mathrm{Var}}[\hat \beta_2] &= \frac{ \sum_{b=1}^B \left( \hat{\beta}_2^{*b} - \bar{\beta}_2^{*} \right)^2 }{B-1} \\
 \end{align*}
+
 where:
+
 \begin{equation*}
 \bar{\beta}_i^{*} \equiv \frac{1}{B}\sum_{b=1}^B \hat{\beta}_i^{b*}, \qquad \textrm{for } i = 1,2
 \end{equation*}
@@ -244,6 +246,7 @@ residual.bootstrap.resampling = function(x, p, B){
     
     #creating the x101 sample by sampling from the bootstrap residuals and using the estimated betas
     #along with x100 and x99 from original time series
+
     e_101_LS = sample(e_est_LS, size = 1)
     x101_LS[b] = beta_est_LS[b, 2]*x[length(x)] + beta_est_LS[b, 1]*x[length(x)-1] + e_101_LS
     
