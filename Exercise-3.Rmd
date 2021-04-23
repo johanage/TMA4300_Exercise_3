@@ -324,9 +324,10 @@ q_x101_LS = stats::quantile(x = result.res.bootstrap$x101_LS, probs = c(0.025, 0
 q_x101_LA = stats::quantile(x = result.res.bootstrap$x101_LA, probs = c(0.025, 0.975))
 ```
 
-For the LS method the $95\%$ prediction interval for $x_{101}$ is $[`r round(q_x101_LS[1],2)`, `r round(q_x101_LS[2],2)`]$, while for the LA method the interval is $[`r round(q_x101_LA[1],2)`, `r round(q_x101_LA[2],2)`]$. We observe that the LA method prediction interval is longer than the corresponding LS method prediction interval. This might just be due to chance. In Figure \ref{plot_x101} we plot the distribution of the simulated $x_{101}$ samples for both the LS and the LA method.
+For the LS method the $95\%$ prediction interval for $x_{101}$ is $[`r round(q_x101_LS[1],2)`, `r round(q_x101_LS[2],2)`]$, while for the LA method the interval is $[`r round(q_x101_LA[1],2)`, `r round(q_x101_LA[2],2)`]$. We observe that the LA method prediction interval is longer than the corresponding LS method prediction interval. This might just be due to randomness. In Figure \ref{plot_x101} we plot the distribution of the simulated $x_{101}$ samples for both the LS and the LA method.
 
 ```{r, fig.width = 6, fig.cap=" \\label{plot_x101} Histogram of the $x_{101}$'s simulated by the LA and the LS method. The vertical lines represents the $95\\%$ prediction interval."}
+# generating df and plotting the histogram for x101 samples
 B = length(result.res.bootstrap$x101_LS)
 df.x101 = data.frame(x101 = c(result.res.bootstrap$x101_LS, result.res.bootstrap$x101_LA), 
                      q.lower = c(rep(q_x101_LS[1],B), rep(q_x101_LA[1], B)),
@@ -468,13 +469,16 @@ permutation.test = function(df, Fval, B = 999, plot.hist = TRUE) {
   for (i in 1:B) fstatistic.vec[i] = permTest(df)
   # if hist == TRUE plot a histogram for the estimated density function of the F-statistic
   if (plot.hist) {
-    fig.hist = ggplot(data.frame(fstatistic = fstatistic.vec), aes(x = fstatistic, y = ..density..)) +
+    fig.hist = ggplot(data.frame(fstatistic = fstatistic.vec), 
+                      aes(x = fstatistic, y = ..density..)) +
       
       geom_histogram(bins = 50) + xlab("F-statistic") + ylab("Density") +
       
       ggtitle("Histogram of the F-statistic under the null hypothesis") +
       
-      geom_vline(aes(xintercept=Fval, col = "F-statistic calculated from original dataset"), data = data.frame(Fval = Fval[1]), linetype = "dashed") +
+      geom_vline(aes(xintercept=Fval, 
+                     col = "F-statistic calculated from original dataset"), 
+                 data = data.frame(Fval = Fval[1]), linetype = "dashed") +
       
       theme(legend.position = "bottom") + guides(col = guide_legend("Vertical line"))
       
@@ -496,7 +500,7 @@ p.value.permutation.test = permutation.test(df.bilirubin, Fval, B = 999)$p.value
 
 In Figure \ref{fig:histogram} we plot a histogram of the F-statistics computed during the Permutation test, which is an approximation for the density function of the F-statistic under the null hypothesis. From the plot it appears that the F-statistic computed from the original data is a part of the upper tail of the distribution function for the F-statistic under the null hypothesis.
 
-The permutation test gives a p-value of $`r round(p.value.permutation.test,4)`$ for the hypothesis test. We observe that this value is a bit larger than the p-value we computed in Task C1 which was $`r round(p.value,4)`$. The p-value from the permutation test is larger than our chosen significance level $\alpha = 0.05$ and hence we do not reject the null hypothesis.
+The permutation test gives a p-value of $`r round(p.value.permutation.test,4)`$ for the hypothesis test. We observe that this value is a bit larger than the p-value we computed in Task C1 which was $`r round(p.value,4)`$. The p-value from the permutation test is larger than our chosen significance level $\alpha = 0.05$ and hence we do not have strong enough evidence to reject the null hypothesis, which means that:
 
 
 
@@ -506,12 +510,12 @@ summary.model.bilurbin.null.hypothesis = summary.lm(model.bilirubin.null.hypothe
 coef.null.hypothesis = summary.model.bilurbin.null.hypothesis$coefficients[,1]
 ```
 
-Hence we get that 
+
 \begin{align*}
 \hat \beta_1 = \hat \beta_2 = \hat \beta_3 = `r round(coef.null.hypothesis,3)`\\
 \end{align*}
 
-
+Note that in this case the second p-value  is larger than the significance level and the first is smaller. Hence the chosen significance level gives rise to different conclusions of the hypethesis test. However, we have run the same permutation test multiple times and this was not always the case. This is due to randomness of the permutation test. 
 
 # Problem C
 
@@ -566,14 +570,14 @@ Using this we want to find the expectation of the log likelihood function for th
 \E \left[ l(\lambda_0, \lambda_1 | \vect x, \vect y)  | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}\right]
 &= \E \left[ \ln\left( f_{\vect X, \vect Y}(\vect x, \vect y | \lambda_0, \lambda_1) \right) 
 | \vect z, \vect u, \lambda_0^{(t)}, \lambda_1^{(t)}  \right] \\
-&= n \left( \ln(\lambda_0) + \ln(\lambda_1) \right) -\lambda_0 \sum_{i=1}^n \E [x_i | z_i, u_i, \lambda_0^{(t)}]  - \lambda_1 \sum_{i=1}^n \E [y_i | z_i, u_i, \lambda_1^{(t)}
+&= n \left( \ln(\lambda_0) + \ln(\lambda_1) \right) -\lambda_0 \sum_{i=1}^n \E \left[ x_i | z_i, u_i, \lambda_0^{(t)}\right]  - \lambda_1 \sum_{i=1}^n \E \left[ y_i | z_i, u_i, \lambda_1^{(t)} \right]
 \end{split}
 \end{equation}
 
 For the case $u_i = 1$ then we have
 
 \begin{align*}
-\E [x_i | z_i, u_i = 1, \lambda_0^{(t)}] &= u_i
+\E \left[x_i | z_i, u_i = 1, \lambda_0^{(t)} \right] &= u_i
 \end{align*}
 
 and
@@ -615,7 +619,7 @@ Correspondlingly, we have for the $u_i = 0$ that
 and
 
 \begin{align*}
-\E [y_i | z_i, u_i = 0, \lambda_1^{(t)}] &= u_i \\
+\E \left[ y_i | z_i, u_i = 0, \lambda_1^{(t)} \right] &= u_i \\
 \end{align*}
 
 Inserting this result into Equation (\ref{eq:em_formula_incomplete}) we get
@@ -695,7 +699,7 @@ To ensure we have found a maximum we also check the second derivatives
 As the second derivatives are stricly negative for all $\lambda_0$ and $\lambda_1$ we know that we have found the values that maximizes $Q(\lambda_0, \lambda_1)$. From Equation (\ref{eq:recursive_lambda0}) and (\ref{eq:recursive_lambda1}) we have a recursive expression for the maximum likelihood estimates of $(\lambda_0, \lambda_1)$.
 
 Below we implement the EM-algorithm for this specific case and find the maximum likelihood estimates when the data is as specified in the files \textbf{z.txt} and \textbf{u.txt} available from the course home page. As stopping criteria we use that the maximum absolute value parameter change from one iteration to the next must be smaller than some chosen $\epsilon$, that is 
-$\max \left \{ |\lambda_0^{(t+1)} - \lambda_0^{(t)}|, |\lambda_1^{(t+1)} - \lambda_1^{(t)}| \right \} < \epsilon$.
+$\max \left \{ \left|\lambda_0^{(t+1)} - \lambda_0^{(t)}\right|, \left|\lambda_1^{(t+1)} - \lambda_1^{(t)}\right| \right \} < \epsilon$.
 
 ```{r}
 # implementation of the EM algorithm. 
@@ -712,10 +716,12 @@ em.algorithm = function(z, u, lambda0, lambda1, epsilon = 1e-6) {
   while (delta > epsilon) {
     # calculate new lambda0 and lambda1 values
     lambda0.vec = c(lambda0.vec, 
-                       n / sum(u * z + (1 - u) * (1 / lambda0.vec[t] - z / (exp(lambda0.vec[t] * z) - 1) ) )
+                       n / sum(u * z + (1 - u) * (1 / lambda0.vec[t] - 
+                                                    z / (exp(lambda0.vec[t] * z) - 1) ) )
     )
     lambda1.vec = c(lambda1.vec,
-                    n / sum((1 - u) * z + u * (1 / lambda1.vec[t] - z / (exp(lambda1.vec[t] * z) - 1) ) )
+                    n / sum((1 - u) * z + u * (1 / lambda1.vec[t] - 
+                                                 z / (exp(lambda1.vec[t] * z) - 1) ) )
     )
     t = t + 1
     
@@ -768,11 +774,11 @@ ggplot(df.em.long, aes(x = iter, y = value, col = initial.value)) + geom_line() 
   ggtitle("Convergence plot of estimates")
 ```
 
-From Figure \ref{fig:convergence_plot} we see that the algorithm quickly converges for all three initial conditions. The estimate for $\lambda_0$ appear to be almost converged after only a single iteration, while the estimate for $\lambda_1$ seem to need around 5 iterations for the same level of precicion. After 16 iterations all three initial positions were converged according to $\epsilon = 10^{-6}$.
+From Figure \ref{fig:convergence_plot} we see that the algorithm quickly converges for all three initial conditions. The estimate for $\lambda_0$ appear to be almost converged after only a single iteration, while the estimate for $\lambda_1$ seem to need around 5 iterations for the same level of precicion. After 16 iterations all three initial positions were converged according to $\epsilon = 10^{-6}$. An explanation for why the estimate for $\lambda_0$ converges much quicker than the estimate for $\lambda_1$ is that $\hat \lambda_1 = `r round(result.em$lambda1,3)`$ is a lot larger than $\hat \lambda_0 = `r round(result.em$lambda0,3)`$. Consequently, $\hat E[x_i] = \frac{1}{\hat \lambda_0} = `r round(1 / result.em$lambda0,3)` > \hat E[y_i] = \frac{1}{\hat \lambda_1} =`r round(1 / result.em$lambda1,3)`$ and we expect $x_i = z_i$ much more often than $y_i = z_i$. This is also seen from the data where $\sum_{i=1}^n I(u_i = 1) = `r sum(u == 1)`$ and $\sum_{i=1}^n I(u_i = 0) = `r sum(u == 0)`$. Hence we have much more accurate observations for $x_i$ than we have for $y_i$ and therefore it is easier to compute $\hat \lambda_0$ than $\hat \lambda_1$.
 
 ## 3)
 
-In this task we use bootstrapping to estimate the standard deviations and the biases of each of $\hat \lambda_0$ and $\hat \lambda_1$ along with an estimate for $\Corr [\hat \lambda_0, \hat \lambda_1]$. First we define som notation. We will bootstrap $B$ new datasets $(\vect z^{b*}, \vect u^{b*}), \; b = 1, \dots, B$. These datasets will each be used to calculate the two estimators of interest $(\hat \lambda_0^{b*}, \hat \lambda_1^{b*})$ using Algorithm \ref{em_algorithm} on $(\vect z^{b*}, \vect u^{b*})$. From the $B$ pairs of parameter estimates we can estimate the standard deviations of $\hat \lambda_0$ and $\hat \lambda_1$ in addition to the correlation between them.
+In this task we use bootstrapping to estimate the standard deviations and the biases of $\hat \lambda_0$ and $\hat \lambda_1$ along with an estimate for $\Corr [\hat \lambda_0, \hat \lambda_1]$. First we define som notation. We will bootstrap $B$ new datasets $(\vect z^{b*}, \vect u^{b*}), \; b = 1, \dots, B$. These datasets will each be used to calculate the two estimators of interest $(\hat \lambda_0^{b*}, \hat \lambda_1^{b*})$ using Algorithm \ref{em_algorithm} on $(\vect z^{b*}, \vect u^{b*})$. From the $B$ pairs of parameter estimates we can estimate the standard deviations of $\hat \lambda_0$ and $\hat \lambda_1$ in addition to the correlation between them.
 
 \begin{align*}
   \widehat {\sd}_{B}[\hat \lambda_0] &= \sqrt{\frac{1}{B-1} \sum_{b=1}^B (\lambda_0^{b*} -\bar \lambda_0^*)^2} \\
@@ -989,7 +995,7 @@ set.seed(1)
 result.bootstrap = bootstrap.lambdas(z, u, B = 2000, epsilon = 1e-6)
 ```
 
-In Table \ref{table:bootstrap_output} it is listed the standard deviations, biases and correlation between $(\hat \lambda_0, \hat \lambda_1)$. All the estimates are calculated using Algorithm \ref{bootstrap_algorithm}. Both of the standard deviation estimates and the correlation estimate appear reasonable. We observe that there is hardly any correlation between the two estimators $\hat \lambda_0$ and $\hat \lambda_1$. This is positive since $x_i$ and $y_i$ are assumed independent.
+In Table \ref{table:bootstrap_output} it is listed the standard deviations, biases and correlation between $(\hat \lambda_0, \hat \lambda_1)$. All the estimates are calculated using Algorithm \ref{bootstrap_algorithm}. Both of the standard deviation estimates and the correlation estimate appear reasonable. We observe that there is hardly any correlation between the two estimators $\hat \lambda_0$ and $\hat \lambda_1$.
 
 \begin{table}[!h]
 \centering
@@ -1072,7 +1078,7 @@ u_i \left[ \ln(\lambda_0) - \lambda_0 z_i + \ln(1-e^{- \lambda_1 z_i}) \right]
 \right)
 \end{align*}
 
-The maximum likelihood estimators (MLE) are $(\hat \lambda_0, \hat \lambda_1) =\argmax_{(\lambda_0, \lambda_1)} = L(\lambda_0, \lambda_1 | \vect z, \vect u) = \argmax_{(\lambda_0, \lambda_1)} l(\lambda_0, \lambda_1 | \vect z, \vect u)$. Unfortunately, it is not possible to find analytical formulas for the maximum likelihood estimators. We can, however, find the MLE numerically. An advantage of optimizing the likelihood directly compared to the EM algorithm is that when optimizing the likelihood directly the standard deviations of $\hat \lambda_0, \hat \lambda_1$ and the correlation between them is directly available without bootstrapping.
+The maximum likelihood estimators (MLE) are $(\hat \lambda_0, \hat \lambda_1) =\argmax_{(\lambda_0, \lambda_1)} L(\lambda_0, \lambda_1 | \vect z, \vect u) = \argmax_{(\lambda_0, \lambda_1)} l(\lambda_0, \lambda_1 | \vect z, \vect u)$. Unfortunately, it is not possible to find analytical formulas for the maximum likelihood estimators. We can, however, find the MLE numerically. An advantage of optimizing the likelihood directly compared to the EM algorithm is that when optimizing the likelihood directly the standard deviations of $\hat \lambda_0, \hat \lambda_1$ and the correlation between them is directly available without bootstrapping.
 
 Let $\hat {\vect \lambda} = [\hat \lambda_0, \hat \lambda_1]^T$. To get an estimate for $\Cov [\hat {\vect \lambda}]$ we use that for independent samples we have that asymptotically as the number of samples goes to infinity the maximum likelihood estimates have the distribution
 
@@ -1103,11 +1109,12 @@ set.seed(1) # set seed for reproducible results
 # also calculate the Hessian matrix at the optimal values for lambda0 and lambda1
 # use fnscale = -1 for maximization instead of minimization
 # limit lambda0 and lambda1 to be larger than 0
-optim.result = optim(initial.lambdas, log.likelihood, NULL, z, u, control = list(fnscale = -1), hessian=TRUE, lower=c(0,0))
+optim.result = optim(initial.lambdas, 
+                     log.likelihood, NULL, z, u, 
+                     control = list(fnscale = -1), 
+                     hessian=TRUE, lower=c(0,0))
 # calculate the mle estimate of the covariance matrix of the estimators for [lambda0, lambda1]
 cov.lambdas.mle = solve(- optim.result$hessian)
-# print the mle estimate of the covariance matrix of the estimator for [lambda0, lambda1]
-cov.lambdas.mle
 
 # calculate standard deviations and correlation between lambda0 and lambda1 estimators
 lambda0.sd.mle = sqrt(cov.lambdas.mle[1,1])
