@@ -789,15 +789,15 @@ Additionally, we can calculate an estimate for the biases of $\hat \lambda_0$ an
 
 \begin{equation} \label{eq:bias}
   \begin{split}
-  \widehat {\bias}_B [\hat \lambda_0] &= \hat \lambda_0 - \bar \lambda_0^{*} \\
-  \widehat {\bias}_B [\hat \lambda_1] &= \hat \lambda_1 - \bar \lambda_1^{*}
+  \widehat {\bias}_B [\hat \lambda_0] &= \bar \lambda_0^{*} - \hat \lambda_0  \\
+  \widehat {\bias}_B [\hat \lambda_1] &= \bar \lambda_1^{*} - \hat \lambda_1
   \end{split}
 \end{equation}
 
 An improved bias estimate can also be calculated, but requires more complex notation to properly explain. Let $F$ be the cumulative distribution function that we assume $(\vect z, \vect u)$ is sampled from and let $\theta = (\lambda_0, \lambda_1) = T(F)$ be a functional of $F$. We let $\hat F$ be the empirical distribution function of the observed data $(\vect z, \vect u)$ and $\hat F^{b*}, \; b = 1, \dots, B$ be the empirical distribution functon of the corresponding bootstrap sample $(\vect z^{b*}, \vect u^{b*})$. The statistical function of bias can be written as $R((\vect Z, \vect U), F) = T(\hat F) - T(F)$. The bias estimate in Equation (\ref{eq:bias}) was derived as $\frac{1}{B} \sum_{b=1}^B \left( T(\hat F^{b*}) - T(\hat F) \right)$. According to the book \textit{Computational Statistics, 2nd edition (2013)} by G.H. Givens and J.A. Hoeting an improved bias estimate is
 
 \begin{equation*}
- \widehat {\bias}_{B, \textrm{improved}}[\hat \lambda_0, \hat \lambda_1] = \hat {R}((\vect Z, \vect U), F) = \frac{1}{B} \sum_{b=1}^B \left( T(\hat F^{b*}) - T(\hat \bar F^*) \right)
+ \widehat {\bias}_{B, \textrm{improved}}[\hat \lambda_0, \hat \lambda_1] = \hat {R}((\vect Z, \vect U), F) = \frac{1}{B} \sum_{b=1}^B \left( T(\hat F^{b*}) - T(\bar F^*) \right)
  = \bar \theta^* - T(\bar F^*)
 \end{equation*}
 
@@ -986,7 +986,7 @@ set.seed(1)
 result.bootstrap = bootstrap.lambdas(z, u, B = 2000, epsilon = 1e-6)
 ```
 
-In Table \ref{table:bootstrap_output} it is listed the standard deviations, biases and correlation between $(\hat \lambda_0, \hat \lambda_1)$. All the estimates are calculated using Algorithm \ref{bootstrap_algorithm}. Both of the standard deviation estimates and the correlation estimate appear reasonable. We observe that there is hardly any correlation between the two estimators $\hat \lambda_0$ and $\hat \lambda_1$.
+In Table \ref{table:bootstrap_output} it is listed the standard deviations, biases and correlation between $(\hat \lambda_0, \hat \lambda_1)$. All the estimates are calculated using Algorithm \ref{bootstrap_algorithm}. Both of the standard deviation estimates and the correlation estimate appear reasonable. We observe that there is hardly any correlation between the two estimators $\hat \lambda_0$ and $\hat \lambda_1$. This is positive since $x_i$ and $y_i$ are assumed independent.
 
 \begin{table}[!h]
 \centering
@@ -1018,8 +1018,18 @@ From Table \ref{table:bootstrap_output} we see that the bias estimates for $\hat
 &= `r round(result.em$lambda1 - result.bootstrap$lambda1.bias.est.improved,4)`
 \end{align*}
 
-As the bias estimates are quite small compared to the estimates of $\lambda_0$ and $\lambda_1$ we prefer the maximum likelihood estimates $(\hat \lambda_0, \hat \lambda_1) = (`r round(result.em$lambda0, 4)`, `r round(result.em$lambda1, 4)`)$ over the bias corrected estimates $(\hat \lambda_0^c, \hat \lambda_1^c) = (`r round(result.em$lambda0 - result.bootstrap$lambda0.bias.est.improved,4)`, `r round(result.em$lambda1 - result.bootstrap$lambda1.bias.est.improved,4)`)$ since $\Var[\hat \lambda_0^c] \geq \Var[\hat \lambda_0]$ and $\Var[\hat \lambda_1^c] \geq \Var[\hat \lambda_1]$.
+As the bias estimates are quite small compared to the estimates of $\lambda_0$ and $\lambda_1$ we prefer the maximum likelihood estimates $(\hat \lambda_0, \hat \lambda_1) = (`r round(result.em$lambda0, 4)`, `r round(result.em$lambda1, 4)`)$ over the bias corrected estimates $(\hat \lambda_0^c, \hat \lambda_1^c) = (`r round(result.em$lambda0 - result.bootstrap$lambda0.bias.est.improved,4)`, `r round(result.em$lambda1 - result.bootstrap$lambda1.bias.est.improved,4)`)$ since 
 
+\begin{align*}
+\Var[\hat \lambda_0^c] = 
+\Var[\hat \lambda_0] + \Var \left[ \widehat {\bias}_{B,\textrm{improved}}[\hat \lambda_0] \right] +
+2 \Cov \left[\hat \lambda_0, \widehat {\bias}_{B,\textrm{improved}}[\hat \lambda_0]  \right]
+\geq \Var[\hat \lambda_0] \\
+\Var[\hat \lambda_1^c] 
+= \Var[\hat \lambda_1] + \Var \left[ \widehat {\bias}_{B,\textrm{improved}}[\hat \lambda_1] \right] +
+2 \Cov \left[\hat \lambda_1, \widehat {\bias}_{B,\textrm{improved}}[\hat \lambda_1]  \right]
+\geq \Var[\hat \lambda_1]
+\end{align*}
 
 
 ## 4)
